@@ -1,0 +1,111 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 50vh;  /* Adjusted from 100vh to 50vh */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+
+.App-link {
+  color: #61dafb;
+}
+
+/* Input Box */
+input[type="file"] {
+  margin: 10px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  color: #333;
+}
+
+input[type="file"]:focus {
+  outline: none;
+  border-color: #61dafb;
+}
+
+label {
+  margin: 10px;
+}
+
+/* Submit Button */
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: #61dafb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #34c9eb;
+}
+
+button:disabled {
+  background-color: #b3b3b3;
+}
+
+/* Animation */
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black background to focus on the dialog */
+  display: flex;
+  justify-content: center;
+  align-items: center; /* these two properties center the .dialog in the middle of the screen */
+}
+
+.dialog {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column; /* ensures that children stack vertically */
+  align-items: flex-start; /* optional: to align items to the start of the dialog */
+  width: 80%; /* you can adjust this as needed */
+  max-width: 400px; /* setting a maximum width can make it look better on larger screens */
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);  /* Adds a subtle shadow around the dialog */
+}
+
+.dialog input[type="text"] {
+  width: 100%;
+  padding: 10px 15px;
+  margin: 10px 10x;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.dialog input[type="text"]:focus {
+  border-color: #61dafb;  /* Gives a blue border on focus, matches your button hover color */
+}

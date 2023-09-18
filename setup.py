@@ -1,0 +1,25 @@
+from distutils.core import setup
+setup(
+    name = 'tune-ease',
+    packages = ['tune-ease'],
+    version = '1.0.0',
+    license='MIT',
+    description = 'Generate music with AI',
+    author = 'Pranit Shah',
+    author_email = 'ppshah2023@gmail.com',
+    url = '',
+    download_url = '',
+    keywords = ['music', 'AI', 'getmusic'],
+    install_requires=[],
+    include_package_data=True,
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Topic :: Artistic Software',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+    ],
+)
