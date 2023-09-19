@@ -1,4 +1,4 @@
-from getmusic.getmusic.utils.misc import instantiate_from_config
+from getmusic.utils.misc import instantiate_from_config
 
 
 def build_model(config, args=None):

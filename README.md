@@ -1,5 +1,7 @@
 # Tune Ease
-``
+
+Everything here is still in development. Still working on it!
+
 Welcome to Tune Ease! This project allows you to run a Python server for generating music, converting music to different file types, interpreting music, and more. 
 
 ## Requirements
@@ -52,3 +54,14 @@ This option was tested only on Ubuntu. If it works on another operating system, 
 
 Feel free to choose the setup option that best suits your needs. Enjoy the project!
 ```
+
+
+
+## Changes to Getmusic
+
+1. In every spot where a GPU was used, I changed the device to CPU
+2. Structural changes to the structure.
+   1. Instead of using a yaml to instantiate the model, I used a new train.py with a variable that contains the data from train.yaml
+   2. Remvoe components from the train.yaml and propagated changes as necessary for using a new architecture
+3. Rewrote a number of large files (600+ lines) to prevent duplicates of functions from existing.
+4. Changed hierarchy and propagated changes.

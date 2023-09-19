@@ -2,20 +2,20 @@ import argparse
 import os
 import torch
 import importlib.resources
-from getmusic.getmusic.modeling.build import build_model
-from getmusic.getmusic.utils.misc import seed_everything
-from getmusic.getmusic.utils.io import load_yaml_config
-from getmusic.getmusic.engine.logger import Logger
-from getmusic.getmusic.engine.solver import Solver
+from getmusic.modeling.build import build_model
+from getmusic.utils.misc import seed_everything
+from getmusic.utils.io import load_yaml_config
+from getmusic.logger import Logger
+from getmusic.solver import Solver
 import datetime
 import numpy  as np
 import pickle
 import miditoolkit
 import math
-from getmusic.getmusic.utils.midi_config import (pos_resolution, velocity_quant, \
+from getmusic.utils.midi_config import (pos_resolution, velocity_quant, \
     tempo_quant, min_tempo, max_tempo, duration_max, max_ts_denominator, max_notes_per_bar, \
     beat_note_factor, trunc_pos, max_inst, max_pitch)
-from getmusic.getmusic.utils.magenta_chord_recognition import infer_chords_for_sequence, _key_chord_distribution, _key_chord_transition_distribution
+from getmusic.utils.magenta_chord_recognition import infer_chords_for_sequence, _key_chord_distribution, _key_chord_transition_distribution
 
 NODE_RANK = os.environ['INDEX'] if 'INDEX' in os.environ else 0
 NODE_RANK = int(NODE_RANK)
@@ -63,7 +63,8 @@ ids_to_tokens = []
 pad_index = None
 empty_index = None
 
-key_profile_path = importlib.resources.path('getmusic.getmusic.utils', 'key_profile.pickle')
+## !PS
+key_profile_path = importlib.resources.path('getmusic.utils', 'key_profile.pickle')
 
 key_profile = pickle.load(open(key_profile_path, 'rb'))
 

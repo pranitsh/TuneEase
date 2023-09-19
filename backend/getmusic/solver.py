@@ -3,13 +3,13 @@ import time
 import math
 import torch
 # from torch.nn.utils import clip_grad_norm_, clip_grad_norm
-from getmusic.getmusic.utils.misc import instantiate_from_config, format_seconds
-from getmusic.getmusic.distributed.distributed import reduce_dict
-from getmusic.getmusic.distributed.distributed import is_primary
-from getmusic.getmusic.utils.misc import get_model_parameters_info
-from getmusic.getmusic.engine.ema import EMA
+from getmusic.utils.misc import instantiate_from_config, format_seconds
+from getmusic.distributed.distributed import reduce_dict
+from getmusic.distributed.distributed import is_primary
+from getmusic.utils.misc import get_model_parameters_info
+from getmusic.engine.ema import EMA
 # from torch.optim.lr_scheduler import CosineAnnealingLR
-import getmusic.getmusic.utils.midi_config as mc
+import getmusic.utils.midi_config as mc
 
 try:
     from torch.cuda.amp import autocast, GradScaler

@@ -11,8 +11,7 @@ import subprocess
 from argparse import ArgumentParser
 
 util = PathUtility()
-app = Flask(__name__, static_url_path='/static', static_folder=util.combine_paths(util.project_directory(), 'frontend', 'build', 'static'))
-app.config['0.0.0.0'] = "*:8080"
+app = Flask(__name__, static_url_path='/static', static_folder=util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build', 'static'))
 parser = ArgumentParser()
 parser.add_argument('-a')
 args = parser.parse_args()
@@ -22,16 +21,15 @@ CORS(app)
 @app.route('/')
 def index():
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
+    build_dir = util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build')
     return send_from_directory(build_dir, 'index.html')
-
 
 @app.route('/<path:filename>')
 def serve_file(filename):
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
+    build_dir = util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build')
     logger = ServerLogger("server.log").get()
-    logger.info("Received a request " + build_dir + "/" + filename)
+    logger.info("Received a request " + build_dir)
     return send_from_directory(build_dir, filename)
 
 
@@ -146,7 +144,7 @@ def random_score():
 
 
 @app.route('/generate', methods=['POST', 'GET'])
-def gnerate():
+def generate():
     logger = ServerLogger("server.log").get()
     logger.info("Received a /generate request with " + str(request.form))
     conditional_tracks = ", ".join([

@@ -10,10 +10,20 @@ class App extends Component {
       musicxml: null,
       showModal: false,
       inputStrings: ['', ''],
-      boolValues: Array(7).fill(false)  
+      boolValues: Array(7).fill(false),
+      apiUrl: window.location.href
     };
     this.fileInput = React.createRef();
+    this.handleChange = this.handleChange.bind(this);
   }
+  
+  handleSubmitApiUrl(event) {
+    event.preventDefault();
+ }
+
+  handleChange(event) {
+      this.setState({apiUrl: event.target.value});
+  }  
   
   handleSubmit(event) {
     event.preventDefault();
@@ -29,7 +39,7 @@ class App extends Component {
   }
 
   async handleNumberMeasures() {
-    if (!this.state.file) {
+    if (!this.state.musicxml) {
       alert("No file uploaded yet.");
       return;
     }
@@ -38,7 +48,7 @@ class App extends Component {
     formData.append("file", this.state.file);
   
     try {
-      const response = await fetch("http://localhost:8080/number", {
+      const response = await fetch(`${this.state.apiUrl}/number`, {
         method: "POST",
         body: formData,
       });
@@ -56,7 +66,8 @@ class App extends Component {
 
   async randomMeasures() {  
     try {
-      const response = await fetch("http://localhost:8080/random", {
+      console.log(`${this.state.apiUrl}/random`)
+      const response = await fetch(`${this.state.apiUrl}/random`, {
         method: "GET",
       });
       if (!response.ok) {
@@ -71,7 +82,6 @@ class App extends Component {
     }
   }
 
-
   async handleConvert() {
     const file = this.fileInput.current.files[0];
     if (!file) {
@@ -83,7 +93,7 @@ class App extends Component {
     formData.append("file", file);
     
     try {
-      const response = await fetch("http://localhost:8080/convert", {
+      const response = await fetch(`${this.state.apiUrl}/convert`, {
         method: "POST",
         body: formData,
       });
@@ -146,7 +156,7 @@ class App extends Component {
       formData.append(key, dataToSend[key]);
     }
     try {
-      const response = await fetch("http://localhost:8080/generate", {
+      const response = await fetch(`${this.state.apiUrl}/generate`, {
         method: "POST",
         body: formData,
       });
@@ -169,6 +179,14 @@ class App extends Component {
         <header className="App-header">
           <h2 className="App-title">Tune Ease</h2>
         </header>
+        <form onSubmit={this.handleSubmitApiUrl.bind(this)}>
+          Api base url: 
+          <input 
+              type="text" 
+              value={this.state.apiUrl}
+              onChange={this.handleChange} 
+          />
+        </form>
         <form onSubmit={this.handleSubmit.bind(this)} >
           <label>
             Upload file:
@@ -176,10 +194,10 @@ class App extends Component {
           </label>
           <button type="submit">Submit</button>
           <button type="button" onClick={this.handleConvert.bind(this)}>Convert</button>
+          <button type="button" onClick={this.randomMeasures.bind(this)}>Random</button>
         </form>
         <form >
           <button type="button" onClick={this.handleNumberMeasures.bind(this)}>Number Measures</button>
-          <button type="button" onClick={this.randomMeasures.bind(this)}>Random</button>
         </form>
         <form >
           <button type="button" onClick={this.showDialog}>Generate</button>
