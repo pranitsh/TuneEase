@@ -1,5 +1,0 @@
-2023-08-22-01-05: Load dictionary: 11879 tokens.
-2023-08-22-01-05: Get lr 3e-06 from base lr 3e-06 with none
-2023-08-22-01-05: {'overall': {'trainable': '86.49M', 'non_trainable': '96.0K', 'total': '86.59M'}, 'rfm': {'trainable': '86.49M', 'non_trainable': '96.0K', 'total': '86.59M'}}
-2023-08-22-01-05: inference_cache: global rank 0: prepare solver done!
-2023-08-22-01-05: Resume from C:/Users/ppsha/Developer/tune-ease/backend/getmusic/checkpoint.pth
