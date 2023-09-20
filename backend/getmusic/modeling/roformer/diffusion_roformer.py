@@ -2,11 +2,11 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from tqdm import tqdm
-from getmusic.getmusic.utils.misc import instantiate_from_config
+from getmusic.utils.misc import instantiate_from_config
 import numpy as np
 from torch.cuda.amp import autocast
-import getmusic.getmusic.utils.midi_config as mc
-
+import getmusic.utils.midi_config as mc
+    
 eps = 1e-8
 
 def sum_except_batch(x, num_dims=1):

@@ -7,6 +7,7 @@ from getmusic.utils.misc import seed_everything
 from getmusic.utils.io import load_yaml_config
 from getmusic.logger import Logger
 from getmusic.solver import Solver
+from getmusic import train
 import datetime
 import numpy  as np
 import pickle
@@ -104,7 +105,7 @@ class Item(object):
 
 def get_args(input_sequence = None):
     parser = argparse.ArgumentParser(description='sampling script')
-    parser.add_argument('--config_file', type=str, default=importlib.resources.path('getmusic.configs', 'train.yaml').as_posix(),
+    parser.add_argument('--config_file', type=str, default=train,
                         help='path of config file')
     parser.add_argument('--name', type=str, default='inference_cache', 
                         help='the name of this experiment, if not provided, set to'
@@ -116,7 +117,7 @@ def get_args(input_sequence = None):
     parser.add_argument('--load_path', type=str, default=importlib.resources.path('getmusic', 'checkpoint.pth').as_posix(),
                         help='path to model that need to be loaded, '
                              'used for loading pretrained model') 
-    parser.add_argument('--dict_path', type=str, default=importlib.resources.path('getmusic.getmusic.utils', 'dict.txt').as_posix(),
+    parser.add_argument('--dict_path', type=str, default=importlib.resources.path('getmusic.utils', 'dict.txt').as_posix(),
                         help='path to model that need to be loaded, '
                              'used for loading pretrained model') 
     parser.add_argument('--num_node', type=int, default=NUM_NODE,
@@ -163,9 +164,6 @@ def get_args(input_sequence = None):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-    if args.name == '':
-        args.name = os.path.basename(args.config_file).replace('.yaml', '')
 
     random_seconds_shift = datetime.timedelta(seconds=np.random.randint(60))
     now = (datetime.datetime.now() - random_seconds_shift).strftime('%Y-%m-%dT%H-%M-%S')
@@ -611,7 +609,7 @@ def main(args = None):
     args.global_rank = args.local_rank + args.node_rank * args.ngpus_per_node
     args.distributed = args.world_size > 1
 
-    config = load_yaml_config(args.config_file)
+    config = args.config_file.config
     config['solver']['vocab_path'] = args.dict_path
     logger = Logger(args)
 

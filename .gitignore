@@ -1,6 +1,7 @@
 ### Repo Specific
 /venv
 checkpoint.pth
+***/cache
 */cache
 /temp
 server.log

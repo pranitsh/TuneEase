@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from getmusic.getmusic.utils.misc import instantiate_from_config
+from getmusic.utils.misc import instantiate_from_config
 
 # from torch.cuda.amp import autocast
 
