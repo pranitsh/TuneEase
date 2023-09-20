@@ -6,6 +6,8 @@ Welcome to Tune Ease! This project allows you to run a Python server for generat
 
 ## Requirements
 
+- You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb is recommended.
+- Still working on my quantized model, but 8 GB should be fine.
 - 5 gb or less (unmeasured, but more likely less than more) of disk space
 - Docker or run this on Ubuntu (requires MuseScore 4)
 

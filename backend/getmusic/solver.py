@@ -291,14 +291,15 @@ class Solver(object):
                path=None, 
                load_optimizer_and_scheduler=True,
                load_others=True
-               ): 
+               ):
         if path is None:
             path = os.path.join(self.ckpt_dir, 'last.pth')
 
         if os.path.exists(path):
             # state_dict = torch.load(path, map_location='cuda:{}'.format(self.args.local_rank))
+            print("1")
             state_dict = torch.load(path, map_location='cpu')
-
+            print('2')
             if load_others:
                 self.last_epoch = state_dict['last_epoch']
                 self.last_iter = state_dict['last_iter']
