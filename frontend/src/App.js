@@ -11,20 +11,69 @@ class App extends Component {
       showModal: false,
       inputStrings: ['', ''],
       boolValues: Array(7).fill(false),
-      apiUrl: window.location.href
+      apiUrl: window.location.href,
+      splitValue: ''
     };
     this.fileInput = React.createRef();
     this.handleChange = this.handleChange.bind(this);
+    this.getMeasuresChange = this.getMeasuresChange.bind(this);
   }
   
-  handleSubmitApiUrl(event) {
+  preventChange(event) {
     event.preventDefault();
  }
 
   handleChange(event) {
-      this.setState({apiUrl: event.target.value});
+    let apiUrl = event.target.value;
+    apiUrl = apiUrl.replace(/\?+$/, '');
+    this.setState({apiUrl: apiUrl});
   }  
   
+  getMeasuresChange(event) {
+    this.setState({splitValue: event.target.value});
+  }
+
+  async getMeasures() {
+  if (!this.state.musicxml) {
+      alert("No file uploaded yet.");
+      return;
+    }
+    const inputValue = this.state.splitValue;
+    const values = inputValue.split(",");
+    if (values.length !== 2 && values.length !== 1) {
+      alert("Invalid input format. " + inputValue + "Please provide one number or two numbers separated by comma.");
+      return;
+    }
+    const startValue = parseInt(values[0], 10);
+    const endValue = values.length == 2 ? parseInt(values[1], 10) : null; // Parse endValue if provided
+    if (isNaN(startValue) || (endValue !== null && isNaN(endValue))) {
+      alert("Invalid input. " + inputValue + " Please provide valid integer values.");
+      return;
+    }
+    const formData = new FormData();
+    const blob = new Blob([this.state.musicxml], { type: "application/xml" });
+    formData.append("file", blob, "music.xml");
+    formData.append("start", startValue.toString());
+    if (endValue !== null) {
+      formData.append("end", endValue.toString());
+    }
+    try {
+      const response = await fetch(`${this.state.apiUrl}/split`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const updatedMusicxml = await response.text();
+      this.setState({
+          musicxml: updatedMusicxml,
+      });
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  }  
+
   handleSubmit(event) {
     event.preventDefault();
     const file = this.fileInput.current.files[0];
@@ -45,7 +94,8 @@ class App extends Component {
     }
   
     const formData = new FormData();
-    formData.append("file", this.state.file);
+    const blob = new Blob([this.state.musicxml], { type: "application/xml" });
+    formData.append("file", blob, "music.xml"); // 'music.xml' is the filename to be used on the server
   
     try {
       const response = await fetch(`${this.state.apiUrl}/number`, {
@@ -63,10 +113,9 @@ class App extends Component {
       console.error("There was a problem with the fetch operation:", error);
     }
   }
-
+  
   async randomMeasures() {  
     try {
-      console.log(`${this.state.apiUrl}/random`)
       const response = await fetch(`${this.state.apiUrl}/random`, {
         method: "GET",
       });
@@ -179,7 +228,7 @@ class App extends Component {
         <header className="App-header">
           <h2 className="App-title">Tune Ease</h2>
         </header>
-        <form onSubmit={this.handleSubmitApiUrl.bind(this)}>
+        <form onSubmit={this.preventChange.bind(this)}>
           Api base url: 
           <input 
               type="text" 
@@ -196,7 +245,14 @@ class App extends Component {
           <button type="button" onClick={this.handleConvert.bind(this)}>Convert</button>
           <button type="button" onClick={this.randomMeasures.bind(this)}>Random</button>
         </form>
-        <form >
+        <form onSubmit={this.preventChange.bind(this)}>
+          Enter Measure Range
+          <input 
+              type="text" 
+              defaultValue="a,b"
+              onChange={this.getMeasuresChange}
+          />
+          <button type="button" onClick={this.getMeasures.bind(this)}>Get Measures</button>
           <button type="button" onClick={this.handleNumberMeasures.bind(this)}>Number Measures</button>
         </form>
         <form >
@@ -278,7 +334,6 @@ class App extends Component {
           )
         }
         </form>
-
         {
           this.state.musicxml && (
             <OpenSheetMusicDisplay file={this.state.musicxml} />

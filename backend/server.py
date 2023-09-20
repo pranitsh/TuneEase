@@ -11,23 +11,23 @@ import subprocess
 from argparse import ArgumentParser
 
 util = PathUtility()
-app = Flask(__name__, static_url_path='/static', static_folder=util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build', 'static'))
+app = Flask(__name__, static_url_path='/static', static_folder=util.combine_paths(util.project_directory(), 'frontend', 'build', 'static'))
 parser = ArgumentParser()
-parser.add_argument('-a')
+parser.add_argument('--museScore_path')
 args = parser.parse_args()
-app.config["museScore_path"] = args.a
+app.config["museScore_path"] = args.museScore_path if args.museScore_path else util.museScore_path()
 CORS(app)
 
 @app.route('/')
 def index():
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build')
+    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
     return send_from_directory(build_dir, 'index.html')
 
 @app.route('/<path:filename>')
 def serve_file(filename):
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'TuneEase', 'frontend', 'build')
+    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
     logger = ServerLogger("server.log").get()
     logger.info("Received a request " + build_dir)
     return send_from_directory(build_dir, filename)
@@ -49,33 +49,47 @@ def convert():
 @app.route('/split', methods=['POST'])
 def split():
     logger = ServerLogger("server.log").get()
-    logger.info("Received a request")
+    logger.info("Received a /split request " + str(request.files) + " with " + str(request.form))
     try:
         file = request.files['file']
         assert file.filename != '', "File is empty"
         assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
-        measure_number = request.form['measure_number']
-        assert measure_number != "" and measure_number != None, "Measure Number is empty"
-        measure_number = int(measure_number)
+        start_number = int(request.form['start'])
+        if (end_number := request.form.get("end")) is not None:
+            end_number = int(end_number)
+        else:
+            end_number = ""
     except Exception as e:
         logger.error(f"Failed to start /split. Error message: {str(e)}")
         return 'Possible Clientside error', 500
-
     util = PathUtility()
     filepath = util.combine_paths(util.project_directory(), 'temp', file.filename)
-    measure_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-measure-' + str(measure_number))
+    measure_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-measure-' + str(start_number) + "-" + str(end_number))
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
-    
     try:
-        # Split the MusicXML into measures and save as separate files
-        measures = music21.converter.parse(filepath).makeVoices().makeMeasures()
-        measures[measure_number].write('musicxml', measure_filepath + ".xml")
+        parsed_song = music21.converter.parse(filepath)
+        measures = []
+        for part in parsed_song.parts:
+            measures.extend(part.getElementsByClass('Measure'))
+        print(len(measures))
+        try:
+            if end_number == "":
+                stream = measures[start_number].write('musicxml', measure_filepath + ".xml")
+            else: 
+                measures_to_combine = measures[start_number-1:end_number]
+                print(measures_to_combine)
+                stream = music21.stream.Stream()
+                for measure in measures_to_combine:
+                    stream.append(measure)
+        except Exception as E:
+            logger.error(f'Your input numbers were outside of the measures of the part (probably): {str(e)}')
+            return f'Your input numbers were outside of the measures of the part (probably)', 500
+        stream.write('musicxml', measure_filepath + ".xml")
         return send_file(measure_filepath + ".xml", as_attachment=True, download_name=measure_filepath + ".xml")
     except Exception as e:
         logger.error(f'Error: {str(e)}')
         return f'Error', 500
-    
 
 @app.route('/number', methods=['POST'])
 def number():
@@ -103,11 +117,11 @@ def number():
                 text_expression.style.absoluteY = 20  # Adjust for positioning
                 text_expression.style.justify = 'left'
                 measure.insert(0, text_expression)
+        score.write('xml', output_filepath)
         return send_file(output_filepath, as_attachment=True, download_name=output_filepath)
     except Exception as e:
         logger.error(f'Error: {str(e)}')
         return f'Error', 500
-
 
 @app.route('/random', methods=['GET'])
 def random_score():
@@ -199,9 +213,10 @@ def generate():
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         s.write('musicxml', filepath)
 
-    converter = Converter(museScore_path=app.config["museScore_path"])
+    output_filepath = os.path.splitext(filepath)[0] + ".mid"
+    musicxml_file = music21.converter.parse(filepath)
     try:
-        output_filepath = converter.convert_to(filepath, output_extension=".mid")
+        musicxml_file.write('midi', fp=output_filepath)
     except Exception as e:
         print(e)
         return str(e), 500

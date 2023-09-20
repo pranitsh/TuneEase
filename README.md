@@ -26,6 +26,7 @@ You have two options to set up and use the code. The first option is preferred. 
 6. Access the server by opening a web browser and visiting http://localhost:8080
 
 ### Option 2: Using a Virtual Environment
+MacOS is not supported.
 
 This option was tested only on Ubuntu. If it works on another operating system, please inform me, but if not, use Docker instead.
 1. Clone this repository to your local machine.
@@ -41,13 +42,29 @@ This option was tested only on Ubuntu. If it works on another operating system, 
    ```sh
    pip install --no-cache-dir -r requirements.txt
    ```
-6. Run the Python server script:
+6. Install MuseScore. On a version of linux,
+   ```sh
+   mkdir temp
+   cd temp
+   wget https://cdn.jsdelivr.net/musescore/v4.1.1/MuseScore-4.1.1.232071203-x86_64.AppImage -O "MuseScore.AppImage"
+   sudo chmod +x 'Muse
+   sudo apt install libfuse2 fuse3 libgl1-mesa-glx
+   sudo apt-get install qtwayland5 jackd qjackctl
+
+   ./MuseScore.AppImage
+   ```
+   On Windows, install MuseScore
+7. Run the Python server script:
    ```sh
    cd backend
    python server.py
    ```
-7. Access the server by opening a web browser and visiting http://localhost:8080
-8. Remember to deactivate the virtual environment when you're done:
+   **Optionally, include your MuseScore path with the flag**
+   ```sh
+   python server.py --museScore_path <path>
+   ```
+8. Access the server by opening a web browser and visiting http://localhost:8080
+9. Remember to deactivate the virtual environment when you're done:
    ```sh
    deactivate
    ```
