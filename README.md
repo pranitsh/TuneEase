@@ -2,7 +2,7 @@
 
 Everything here is still in development. Still working on it!
 
-Welcome to Tune Ease! This project allows you to run a Python server for generating music, converting music to different file types, interpreting music, and more. 
+Welcome to Tune Ease! This project allows you to  for generating music with AI, converting music to different file types, interpreting music, and more. 
 
 ## Requirements
 
@@ -34,11 +34,15 @@ For now, you can try the below:
 6. Access the server by opening a web browser and visiting http://localhost:8080
 
 ### Option 3: Using a Virtual Environment
-MacOS is not supported. Windows may be supported.
+- This setup has been developed on Windows and WSL. Most Ubuntu, online coding environments, and other linux environments will be supported with this method.
+- MacOS is supportable, but I won't be able to do that because I don't have access to that development environment. If you have some time, add the file paths for museScore and run the potential (but not yet written) tests.
 
-This option was tested only on Ubuntu. If it works on another operating system, please inform me, but if not, use Docker instead.
-1. Clone this repository to your local machine.
-2. Navigate to the project directory in your terminal.
+1. Clone this repository to your local machine and navigate to the project directory in your terminal.
+2. Install the model checkpoint with the below:
+   ```sh
+   wget https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth -O backend/getmusic/checkpoint.pth -4
+   ```
+   The above is the command if necessary. Using your browser to download this link is faster (at least on Windows) and has a better GUI too. **You must place it at backend/getmusic/checkpoint.pth**
 3. Create a virtual environment using Python 3:
    ```sh
    python3 -m venv venv
@@ -61,7 +65,13 @@ This option was tested only on Ubuntu. If it works on another operating system, 
    ./MuseScore.AppImage
    ```
    On Windows and macOS, install MuseScore through the website: [https://musescore.org/en](https://musescore.org/en).
-7. Run the Python server script:
+7. Build the website: (may not be necessary)
+   ```sh
+   cd frontend
+   npm install
+   npm run build
+   ```
+8. Run the Python server script:
    ```sh
    cd backend
    python server.py
@@ -70,7 +80,7 @@ This option was tested only on Ubuntu. If it works on another operating system, 
    ```sh
    python server.py --museScore_path <path>
    ```
-8. Access the server by opening a web browser and visiting http://localhost:8080 or wherever port flask tells you to go to in the above command.
+9.  Access the server by opening a web browser and visiting http://localhost:8080 or wherever port flask tells you to go to in the above command.
 
 
 Remember to deactivate the virtual environment when you're done:

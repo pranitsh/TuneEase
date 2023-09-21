@@ -1,191 +1,122 @@
 import os
 import music21 
 import random
-
-from torch import NoneType
 from logger import ServerLogger
 from pathutility import PathUtility
 from converter import Converter
 from getmusic.track_generation import main as music_generator
-from argparse import ArgumentParser
 
 class TuneEase:
-    
-    def __init__(self, arguments = None):
-        if arguments == None:
-            self.args = self.parse()
-        else: 
-            self.args = self.parse(arguments=arguments)
-            
-    def parse(self, arguments=None):
-        parser = ArgumentParser(description="Process music files with TuneEase")
-        
-        # General arguments
-        parser.add_argument('--file', type=str, help="Path to the music file.")
-        parser.add_argument('--museScore', type=str, help="Path to museScore.")
-        parser.add_argument('--measure_number', type=int, help="Measure number for splitting.")
-        
-        # Random Score arguments
-        parser.add_argument('--time_signature', default='4/4', help="Time signature for random score generation.")
-        parser.add_argument('--number_measures', default=8, type=int, help="Number of measures for random score generation.")
-        
-        # Generate method arguments
-        parser.add_argument('--conditional_tracks', type=str, help="Conditional tracks for music generation.")
-        parser.add_argument('--content_tracks', type=str, help="Content tracks for music generation.")
-        parser.add_argument('--seed', default=0, type=int, help="Seed for music generation.")
-        
-        if arguments is None:
-            args = parser.parse_args()
-        else:
-            args = parser.parse_args(arguments)
-        
-        return args
+    util = PathUtility()
+    museScore_path = util.museScore_path()
+    logger = ServerLogger("tuneease.log").get()
+    def __init__(self, museScore_path = ""):
+        if museScore_path:
+            self.museScore_path = museScore_path
+        self.converter = Converter(museScore_path=self.museScore_path)
 
-    def convert(self):
-        logger = ServerLogger("server.log").get()
-        logger.info("Received a /convert request")
-        converter = Converter(self.args.museScore)
+    def convert(self, filepath):
+        self.logger.info("Running convert")
         try:
-            output_filepath = converter.convert_to(self.args.file)
+            output_filepath = self.converter.convert(filepath)
             return output_filepath
         except Exception as e:
-            print(e)
-            exit
+            return e
 
-
-    def split(self, ):
-        logger = ServerLogger("server.log").get()
-        logger.info("Received a request")
-        try:
-            file = request.files['file']
-            assert file.filename != '', "File is empty"
-            assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
-            measure_number = request.form['measure_number']
-            assert measure_number != "" and measure_number != None, "Measure Number is empty"
-            measure_number = int(measure_number)
-        except Exception as e:
-            logger.error(f"Failed to start /split. Error message: {str(e)}")
-            return 'Possible Clientside error', 500
-
-        util = PathUtility()
-        filepath = util.combine_paths(util.project_directory(), 'temp'.filename)
-        measure_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-measure-' + str(measure_number))
+    def split(self, filepath, start, end = ""):
+        self.logger.info("Running split" + filepath + " with " + str(start) + "-" + str(end))
+        filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
+        measure_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-measure-' + str(start) + "-" + str(end) + ".xml")
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        file.save(filepath)
-        
         try:
-            # Split the MusicXML into measures and save as separate files
-            measures = music21.converter.parse(filepath).makeVoices().makeMeasures()
-            measures[measure_number].write('musicxml', measure_filepath + ".xml")
-            return measure_filepath + ".xml"
-        except Exception as e:
-            logger.error(f'Error: {str(e)}')
-            return f'Error', 500
-        
+            parsed_song = music21.converter.parse(filepath)
+            measures = []
+            for part in parsed_song.parts:
+                measures.extend(part.getElementsByClass('Measure'))
+            if end == "":
+                stream = measures[start]
+            else: 
+                measures_to_combine = measures[start-1:end]
+                stream = music21.stream.Stream()
+                for measure in measures_to_combine:
+                    stream.append(measure)
+            stream.write('musicxml', measure_filepath)
+        finally:
+            return measure_filepath
 
-    def number(self, ):
-        logger = ServerLogger("server.log").get()
-        logger.info("Received a /number request " + str(request.files))
-        try:
-            file = request.files['file']
-            assert file.filename != '', "File is empty"
-            assert os.path.splitext(file.filename)[1] == ".xml", "File is not .musixml"
-        except Exception as e:
-            logger.error(f"Failed to start /number. Error message: {str(e)}")
-            return 'Possible Clientside error', 500
-
-        util = PathUtility()
-        filepath = util.combine_paths(util.project_directory(), 'temp'.filename)
-        output_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-number.xml')
+    def number(self, filepath):
+        self.logger.info("Running number on {}".format(filepath))
+        filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
+        output_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-number.xml')
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        file.save(filepath)
-        
-        try:
-            score = music21.converter.parse(filepath)
-            for part in score.parts:
-                for i, measure in enumerate(part.getElementsByClass(music21.stream.Measure)):
-                    text_expression = music21.expressions.TextExpression(f"Measure {i + 1}")
-                    text_expression.style.absoluteY = 20  # Adjust for positioning
-                    text_expression.style.justify = 'left'
-                    measure.insert(0, text_expression)
-            return output_filepath
-        except Exception as e:
-            logger.error(f'Error: {str(e)}')
-            return f'Error', 500
+        score = music21.converter.parse(filepath)
+        for part in score.parts:
+            for i, measure in enumerate(part.getElementsByClass(music21.stream.Measure)):
+                text_expression = music21.expressions.TextExpression("Measure {}".format(i + 1))
+                text_expression.style.absoluteY = 20  
+                text_expression.style.justify = 'left'
+                measure.insert(0, text_expression)
+        score.write('musicxml', output_filepath)
+        return output_filepath
 
+    def random_score(self, time_signature = '4/4', number_measures = '8'):
+        self.logger.info("Running random score")
+        quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
+        number_measures = int(number_measures) * int(time_signature.split('/')[0])
+        s = music21.stream.Stream()
+        ts = music21.meter.TimeSignature(time_signature)
+        s.append(ts)
+        md = music21.metadata.Metadata()
+        md.title = 'Random'
+        md.composer = 'MuseTune'
+        s.insert(0, md)
+        notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
+        lyrics = ['✔', 'x']
+        for i in range(number_measures):
+            note_name = random.choice(notes)
+            n = music21.note.Note(note_name, quarterLength=quarter_length)
+            n.lyric = random.choice(lyrics)
+            s.append(n)
+        filepath = os.path.join(self.util.project_directory(), 'temp', "random.xml")
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        s.write('musicxml', filepath)
+        return filepath
 
-    def random_score(self, ):
-        logger = ServerLogger("server.log").get()
-        logger.info("Received a /random request")
-        try:
-            time_signature = request.form.get('time_signature', '4/4')
-            quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-            number_measures = int(request.form.get('number_measures', '8')) * int(time_signature.split('/')[0])
-            s =  music21.stream.Stream()
-            ts = music21.meter.TimeSignature(time_signature)
-            s.append(ts)
-            md = music21.metadata.Metadata()
-            md.title = 'Random'
-            md.composer = 'MuseTune'
-            s.insert(0, md)
-            notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
-            lyrics = ['✔', 'x']
-            for i in range(number_measures):
-                note_name = random.choice(notes)
-                n = music21.note.Note(note_name, quarterLength=quarter_length)
-                n.lyric = random.choice(lyrics)
-                s.append(n)
-
-            util = PathUtility()
-            filepath = util.combine_paths(util.project_directory(), 'temp', "random.xml")
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            
-            s.write('musicxml'path)
-            return filepath
-        except Exception as e:
-            logger.error(f'Error: {str(e)}')
-            return f'Error', 500
-
-
-    def gnerate(self, ):
-        logger = ServerLogger("server.log").get()
-        logger.info("Received a /generate request with " + str(request.form))
+    def generate(self, form, file = None):
+        self.logger.info("Received a generate request with {}".format(str(form)))
         conditional_tracks = ", ".join([
-            str(request.form.get("condition-lead", "False") == "True"),
-            str(request.form.get("condition-bass", "False") == "True"),
-            str(request.form.get("condition-drums", "False") == "True"),
-            str(request.form.get("condition-guitar", "False") == "True"),
-            str(request.form.get("condition-piano", "False") == "True"),
-            str(request.form.get("condition-strings", "False") == "True"), 
+            str(form.get("condition-lead", "False") == "True"),
+            str(form.get("condition-bass", "False") == "True"),
+            str(form.get("condition-drums", "False") == "True"),
+            str(form.get("condition-guitar", "False") == "True"),
+            str(form.get("condition-piano", "False") == "True"),
+            str(form.get("condition-strings", "False") == "True"),
             str(True)
         ])
         content_tracks = ", ".join([
-            str(request.form.get("content-lead", "False") == "True"),
-            str(request.form.get("content-bass", "False") == "True"),
-            str(request.form.get("content-drums", "False") == "True"),
-            str(request.form.get("content-guitar", "False") == "True"),
-            str(request.form.get("content-piano", "True") == "True"),
-            str(request.form.get("content-strings", "False") == "True"), 
+            str(form.get("content-lead", "False") == "True"),
+            str(form.get("content-bass", "False") == "True"),
+            str(form.get("content-drums", "False") == "True"),
+            str(form.get("content-guitar", "False") == "True"),
+            str(form.get("content-piano", "True") == "True"),
+            str(form.get("content-strings", "False") == "True"),
             str(False)
         ])
-        seed = request.form.get("seed", "0")
+        seed = form.get("seed", "0")
 
-        if 'file' in request.files:
-            logger.info("Performing with input file")
-            file = request.files['file']
+        if file:
+            self.logger.info("Performing with input file")
             assert file.filename != '', "File is empty"
             assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
-
-            util = PathUtility()
-            filepath = util.combine_paths(util.project_directory(), 'temp'.filename)
+            filepath = os.path.join(self.util.project_directory(), 'temp', file.filename)
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             file.save(filepath)
         else:
-            logger.info("Performing with template file")
-            time_signature = request.form.get('time_signature', '4/4')
+            self.logger.info("Performing with template file")
+            time_signature = form.get('time_signature', '4/4')
             quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-            number_measures = int(request.form.get('number_measures', '2')) * int(time_signature.split('/')[0])
-            s =  music21.stream.Stream()
+            number_measures = int(form.get('number_measures', '2')) * int(time_signature.split('/')[0])
+            s = music21.stream.Stream()
             ts = music21.meter.TimeSignature(time_signature)
             s.append(ts)
             md = music21.metadata.Metadata()
@@ -197,30 +128,30 @@ class TuneEase:
                 note_name = random.choice(notes)
                 n = music21.note.Note(note_name, quarterLength=quarter_length)
                 s.append(n)
-            util = PathUtility()
-            filepath = util.combine_paths(util.project_directory(), 'temp', "template.xml")
+            filepath = os.path.join(self.util.project_directory(), 'temp', "template.xml")
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            s.write('musicxml'path)
+            s.write('musicxml', filepath)
 
-        converter = Converter(museScore_path=app.config["museScore_path"])
+        output_filepath = os.path.splitext(filepath)[0] + ".mid"
+        musicxml_file = music21.converter.parse(filepath)
         try:
-            output_filepath = converter.convert_to(filepath, output_extension=".mid")
+            musicxml_file.write('midi', fp=output_filepath)
         except Exception as e:
-            print(e)
-            return str(e), 500
+            self.logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
+            raise e
 
         cmd = [
             '--file_path', output_filepath,
             "--seed", str(seed),
             "--conditional_tracks", conditional_tracks,
-            "--content_tracks", content_tracks,       
+            "--content_tracks", content_tracks,
         ]
 
-        save_path = music_generator(cmd)
-
+        save_path = os.path.splitext(music_generator.main(cmd))[0]
+        musicxml_file = music21.converter.parse(save_path + ".mid")
         try:
-            output_filepath = converter.convert_to(file, output_extension=".xml")
-        except:
-            return 500
-
-        return send_file(save_path + ".xml", as_attachment=True, download_name=save_path + ".xml")
+            musicxml_file.write('musicxml', fp=save_path + ".xml")
+        except Exception as e:
+            self.logger.error("Had an error converting the generated content to xml (probably model error) - {}".format(str(e)))
+            raise e
+        return save_path + ".xml"

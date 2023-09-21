@@ -1,7 +1,6 @@
 import argparse
 import os
 import torch
-import importlib.resources
 from getmusic.modeling.build import build_model
 from getmusic.utils.misc import seed_everything
 from getmusic.utils.io import load_yaml_config
@@ -64,8 +63,8 @@ ids_to_tokens = []
 pad_index = None
 empty_index = None
 
-## !PS
-key_profile_path = importlib.resources.path('getmusic.utils', 'key_profile.pickle')
+#!PS
+key_profile_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils', 'key_profile.pickle')
 
 key_profile = pickle.load(open(key_profile_path, 'rb'))
 
@@ -110,14 +109,14 @@ def get_args(input_sequence = None):
     parser.add_argument('--name', type=str, default='inference_cache', 
                         help='the name of this experiment, if not provided, set to'
                              'the name of config file') 
-    parser.add_argument('--output', type=str, default=(importlib.resources.files('getmusic') / 'cache').as_posix(), 
+    parser.add_argument('--output', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache'), 
                         help='directory to save the results')    
     parser.add_argument('--tensorboard', action='store_true', 
                         help='use tensorboard for logging')
-    parser.add_argument('--load_path', type=str, default=importlib.resources.path('getmusic', 'checkpoint.pth').as_posix(),
+    parser.add_argument('--load_path', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'checkpoint.pth'),
                         help='path to model that need to be loaded, '
                              'used for loading pretrained model') 
-    parser.add_argument('--dict_path', type=str, default=importlib.resources.path('getmusic.utils', 'dict.txt').as_posix(),
+    parser.add_argument('--dict_path', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils', 'dict.txt'),
                         help='path to model that need to be loaded, '
                              'used for loading pretrained model') 
     parser.add_argument('--num_node', type=int, default=NUM_NODE,
@@ -635,7 +634,6 @@ def main(args = None):
     solver = Solver(config=config, args=args, model=model, dataloader=dataloader_info, logger=logger, is_sample=True)
 
     assert args.load_path is not None
-    print(args.load_path)
     solver.resume(path=args.load_path)
 
     file_name = args.file_path
@@ -673,11 +671,8 @@ def main(args = None):
             oct_final_list.append(' '.join(data[start-3:start+5]))
     
     oct_final = ' '.join(oct_final_list)
-
     midi_obj = encoding_to_MIDI(oct_final, tpc, args.decode_chord)
-
     save_path = os.path.splitext(args.file_path)[0] + "-" + str(args.seed) + "-generated"
-
     midi_obj.dump(save_path + ".mid")
     return save_path
 

@@ -1,21 +1,17 @@
-from pathlib import Path
 import os
 import sys
 import shutil
 
 class PathUtility:
     def __init__(self):
-        self.current_file_path = Path(__file__).resolve()
+        self.current_file_path = os.path.abspath(__file__)
 
     def project_directory(self):
-        return self.current_file_path.parent.parent.as_posix()
-
-    def combine_paths(self, *args):
-        return Path(*args).as_posix()
+        return os.path.dirname(os.path.dirname(self.current_file_path))
 
     def museScore_path(self):
         mscore_mac_executable = 'mscore' if sys.platform != 'win32' else 'mscore.exe'
-        museScore_window_executable = 'MuseScore' if sys.platform != 'win32' else 'MuseScore.exe'
+        museScore_window_executable = 'MuseScore' if sys.platform != 'win32' else 'MuseScore4.exe'
         museScore_linux_executable = 'MuseScore.AppImage' if sys.platform.startswith('linux') else None
         path = shutil.which(mscore_mac_executable)
         if path:

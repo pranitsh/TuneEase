@@ -11,7 +11,7 @@ import subprocess
 from argparse import ArgumentParser
 
 util = PathUtility()
-app = Flask(__name__, static_url_path='/static', static_folder=util.combine_paths(util.project_directory(), 'frontend', 'build', 'static'))
+app = Flask(__name__, static_url_path='/static', static_folder=os.path.join(util.project_directory(), 'frontend', 'build', 'static'))
 parser = ArgumentParser()
 parser.add_argument('--museScore_path')
 args = parser.parse_args()
@@ -21,13 +21,13 @@ CORS(app)
 @app.route('/')
 def index():
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
+    build_dir = os.path.join(util.project_directory(), 'frontend', 'build')
     return send_from_directory(build_dir, 'index.html')
 
 @app.route('/<path:filename>')
 def serve_file(filename):
     util = PathUtility()
-    build_dir = util.combine_paths(util.project_directory(), 'frontend', 'build')
+    build_dir = os.path.join(util.project_directory(), 'frontend', 'build')
     logger = ServerLogger("server.log").get()
     logger.info("Received a request " + build_dir)
     return send_from_directory(build_dir, filename)
@@ -63,8 +63,8 @@ def split():
         logger.error(f"Failed to start /split. Error message: {str(e)}")
         return 'Possible Clientside error', 500
     util = PathUtility()
-    filepath = util.combine_paths(util.project_directory(), 'temp', file.filename)
-    measure_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-measure-' + str(start_number) + "-" + str(end_number))
+    filepath = os.path.join(util.project_directory(), 'temp', file.filename)
+    measure_filepath = os.path.join(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-measure-' + str(start_number) + "-" + str(end_number))
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
     try:
@@ -72,13 +72,11 @@ def split():
         measures = []
         for part in parsed_song.parts:
             measures.extend(part.getElementsByClass('Measure'))
-        print(len(measures))
         try:
             if end_number == "":
                 stream = measures[start_number].write('musicxml', measure_filepath + ".xml")
             else: 
                 measures_to_combine = measures[start_number-1:end_number]
-                print(measures_to_combine)
                 stream = music21.stream.Stream()
                 for measure in measures_to_combine:
                     stream.append(measure)
@@ -104,8 +102,8 @@ def number():
         return 'Possible Clientside error', 500
 
     util = PathUtility()
-    filepath = util.combine_paths(util.project_directory(), 'temp', file.filename)
-    output_filepath = util.combine_paths(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-number.xml')
+    filepath = os.path.join(util.project_directory(), 'temp', file.filename)
+    output_filepath = os.path.join(util.project_directory(), 'temp', os.path.splitext(file.filename)[0] + '-number.xml')
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
     
@@ -117,7 +115,7 @@ def number():
                 text_expression.style.absoluteY = 20  # Adjust for positioning
                 text_expression.style.justify = 'left'
                 measure.insert(0, text_expression)
-        score.write('xml', output_filepath)
+        score.write('musicxml', output_filepath)
         return send_file(output_filepath, as_attachment=True, download_name=output_filepath)
     except Exception as e:
         logger.error(f'Error: {str(e)}')
@@ -147,7 +145,7 @@ def random_score():
             s.append(n)
 
         util = PathUtility()
-        filepath = util.combine_paths(util.project_directory(), 'temp', "random.xml")
+        filepath = os.path.join(util.project_directory(), 'temp', "random.xml")
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         
         s.write('musicxml', filepath)
@@ -188,7 +186,7 @@ def generate():
         assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
 
         util = PathUtility()
-        filepath = util.combine_paths(util.project_directory(), 'temp', file.filename)
+        filepath = os.path.join(util.project_directory(), 'temp', file.filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
     else:
@@ -209,7 +207,7 @@ def generate():
             n = music21.note.Note(note_name, quarterLength=quarter_length)
             s.append(n)
         util = PathUtility()
-        filepath = util.combine_paths(util.project_directory(), 'temp', "template.xml")
+        filepath = os.path.join(util.project_directory(), 'temp', "template.xml")
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         s.write('musicxml', filepath)
 
@@ -218,7 +216,7 @@ def generate():
     try:
         musicxml_file.write('midi', fp=output_filepath)
     except Exception as e:
-        print(e)
+        logger.error("Had an error converting to midi with " + filepath + " " + str(e))
         return str(e), 500
 
     cmd = [
@@ -228,13 +226,13 @@ def generate():
         "--content_tracks", content_tracks,       
     ]
 
-    save_path = music_generator(cmd)
-
+    save_path = os.path.splitext(music_generator(cmd))[0]
+    musicxml_file = music21.converter.parse(save_path + ".mid")
     try:
-        output_filepath = converter.convert_to(file, output_extension=".xml")
-    except:
+        musicxml_file.write('musicxml', fp=save_path + ".xml")
+    except Exception as E:
+        logger.error("Had an error converting the generated content to xml (probably model error)" + str(E))
         return 500
-
     return send_file(save_path + ".xml", as_attachment=True, download_name=save_path + ".xml")
 
 if __name__ == '__main__':
