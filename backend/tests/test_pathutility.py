@@ -1,8 +1,4 @@
 import os
-import sys
-import shutil
-import pytest
-
 from ..pathutility import PathUtility
 
 def test_path_utility_init():

@@ -2,8 +2,6 @@ import torch
 from torch import nn
 from getmusic.utils.misc import instantiate_from_config
 
-from torch.cuda.amp import autocast
-
 def disabled_train(self, mode=True):
     return self
 

@@ -7,12 +7,7 @@ import os
 sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
 from getmusic.utils.midi_config import *
 from getmusic.data.indexed_datasets import IndexedDatasetBuilder
-from getmusic.midi_builder.presets import prog_to_abrv, inst_to_row
-
-root_dict = {'C': 0, 'C#': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'Ab': 8, 'A': 9, 'Bb': 10, 'B': 11}
-kind_dict = {'null': 0, 'm': 1, '+': 2, 'dim': 3, 'seven': 4, 'maj7': 5, 'm7': 6, 'm7b5': 7}
-root_list = list(root_dict.keys())
-kind_list = list(kind_dict.keys())
+from backend.getmusic.pipeline.presets import prog_to_abrv, inst_to_row, root_list, kind_list
 
 pos_in_bar = beat_note_factor * max_notes_per_bar * pos_resolution
 

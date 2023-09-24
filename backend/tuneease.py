@@ -233,21 +233,21 @@ class TuneEase:
             time_signature = form.get('time_signature', '4/4')
             quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
             number_measures = int(form.get('number_measures', '2')) * int(time_signature.split('/')[0])
-            s = music21.stream.Stream()
-            ts = music21.meter.TimeSignature(time_signature)
-            s.append(ts)
-            md = music21.metadata.Metadata()
-            md.title = 'Random'
-            md.composer = 'MuseTune'
-            s.insert(0, md)
+            stream = music21.stream.Stream()
+            time_signature = music21.meter.TimeSignature(time_signature)
+            stream.append(time_signature)
+            metadata = music21.metadata.Metadata()
+            metadata.title = 'Random'
+            metadata.composer = 'MuseTune'
+            stream.insert(0, metadata)
             notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
             for _ in range(number_measures):
                 note_name = random.choice(notes)
                 n = music21.note.Note(note_name, quarterLength=quarter_length)
-                s.append(n)
+                stream.append(n)
             filepath = os.path.join(self.util.project_directory(), 'temp', "template.xml")
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            s.write('musicxml', filepath)
+            stream.write('musicxml', filepath)
 
         output_filepath = os.path.splitext(filepath)[0] + ".mid"
         musicxml_file = music21.converter.parse(filepath)

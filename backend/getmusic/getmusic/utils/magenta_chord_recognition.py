@@ -39,6 +39,7 @@ _CHORD_KIND_PITCHES = {
     'm7': [0, 3, 7, 10],
     'm7b5': [0, 3, 6, 10],
 }
+
 _CHORD_KINDS = _CHORD_KIND_PITCHES.keys()
 NO_CHORD = 'N.C.'
 # All usable chords, including no-chord.

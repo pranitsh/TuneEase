@@ -3,7 +3,6 @@ import time
 import torch
 from getmusic.utils.io import write_args, save_config_to_yaml
 from getmusic.distributed.distributed import is_primary
-import torch.utils.tensorboard as tensorboard
 
 class Logger(object):
     def __init__(self, args):

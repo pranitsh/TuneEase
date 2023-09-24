@@ -1,9 +1,16 @@
-To run the tests and see the benchmarks:
+To check for duplicated code:
+```sh
+pip install flake8 flake8-duplicated pylint autoflake
+# from project directory
+pylint --min-similarity-lines 2 .\backend\
+flake8 .
 
+```
+
+To run the tests and see the benchmarks:
 ```sh
 pip install pytest==7.4.2 pytest-benchmark==4.0.0
-cd keyflare
-pytests tests/
+pytest -v
 ```
 
 To test before you upload:

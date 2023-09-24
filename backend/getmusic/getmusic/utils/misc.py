@@ -5,7 +5,6 @@ import torch
 import warnings
 import os
 
-
 def seed_everything(seed, cudnn_deterministic=False):
     """
     Function that sets seed for pseudo-random number generators in:
@@ -17,8 +16,10 @@ def seed_everything(seed, cudnn_deterministic=False):
     if seed is not None:
         print(f"Global seed set to {seed}")
         random.seed(seed)
+        os.environ['PYTHONHASHSEED'] = str(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
 
     if cudnn_deterministic:
@@ -28,7 +29,6 @@ def seed_everything(seed, cudnn_deterministic=False):
                       'which can slow down your training considerably! '
                       'You may see unexpected behavior when restarting '
                       'from checkpoints.')
-
 
 def merge_opts_to_config(config, opts):
     def modify_dict(c, nl, v):

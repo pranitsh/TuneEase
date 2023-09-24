@@ -1,4 +1,3 @@
-import os
 import torch
 from torch import distributed as dist
 from torch import multiprocessing as mp

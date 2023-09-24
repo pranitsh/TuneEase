@@ -2,14 +2,13 @@ import os
 import time
 import math
 import torch
-from torch.nn.utils import clip_grad_norm_, clip_grad_norm
 from getmusic.utils.misc import instantiate_from_config, format_seconds
 from getmusic.distributed.distributed import reduce_dict
 from getmusic.distributed.distributed import is_primary
 from getmusic.utils.misc import get_model_parameters_info
 from getmusic.engine.ema import EMA
-from torch.optim.lr_scheduler import CosineAnnealingLR
 import getmusic.utils.midi_config as mc
+from ...pipeline.presets import root_dict, kind_dict
 
 try:
     from torch.cuda.amp import autocast, GradScaler
@@ -19,11 +18,10 @@ except:
     AMP = False
 
 
-root_dict = {'C': 0, 'C#': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'Ab': 8, 'A': 9, 'Bb': 10, 'B': 11}
-kind_dict = {'null': 0, 'm': 1, '+': 2, 'dim': 3, 'seven': 4, 'maj7': 5, 'm7': 6, 'm7b5': 7}
 
 class Solver(object):
-    def __init__(self, config, args, model, dataloader, logger, is_sample=False):
+    def __init__(self, gpu, config, args, model, dataloader, logger, is_sample=False):
+        self.gpu = gpu
         self.config = config
         self.args = args
         self.model = model 
@@ -99,7 +97,8 @@ class Solver(object):
 
         self.logger.log_info(str(get_model_parameters_info(self.model)))
 
-        self.model.to(self.args.local_rank)
+        if self.gpu:
+            self.model.to(self.args.local_rank)
         
         self.device = self.args.local_rank
         print('self.device ',self.device)
@@ -293,7 +292,10 @@ class Solver(object):
             path = os.path.join(self.ckpt_dir, 'last.pth')
 
         if os.path.exists(path):
-            state_dict = torch.load(path, map_location='cuda:{}'.format(self.args.local_rank))
+            if self.gpu:
+                state_dict = torch.load(path, map_location='cuda:{}'.format(self.args.local_rank))
+            else:
+                state_dict = state_dict = torch.load(path, map_location="cpu")
 
             if load_others:
                 self.last_epoch = state_dict['last_epoch']
@@ -505,11 +507,12 @@ class Solver(object):
         else:  
             model = self.model 
 
-        with torch.no_grad(): 
-            x = x.cuda()
-            tempo = tempo.cuda()
-            not_empty_pos = not_empty_pos.cuda()
-            condition_pos = condition_pos.cuda()
+        with torch.no_grad():
+            if self.gpu: 
+                x = x.cuda()
+                tempo = tempo.cuda()
+                not_empty_pos = not_empty_pos.cuda()
+                condition_pos = condition_pos.cuda()
             assert x.size()[0] == 1
             ts = 6
 

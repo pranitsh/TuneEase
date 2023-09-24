@@ -6,6 +6,7 @@ from getmusic.utils.midi_config import *
 import os
 import pickle
 prog_to_name = {'32':'Bass','128':'Drums','25':'Guitar','0':'Grand_Piano','48':'Strings'}
+from ..pipeline.presets import root_dict, kind_dict
 
 dur_vocab_size = duration_max * pos_resolution
 # 9 celesta
@@ -14,8 +15,6 @@ dur_vocab_size = duration_max * pos_resolution
 # 48 string ensemble
 # 80 synth
 # 128 drum
-root_dict = {'C': 0, 'C#': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'Ab': 8, 'A': 9, 'Bb': 10, 'B': 11}
-kind_dict = {'null': 0, 'm': 1, '+': 2, 'dim': 3, 'seven': 4, 'maj7': 5, 'm7': 6, 'm7b5': 7}
 
 dpath = sys.argv[1]
 output_txt_path = dpath
