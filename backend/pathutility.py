@@ -3,13 +3,64 @@ import sys
 import shutil
 
 class PathUtility:
+    """
+    A utility class for handling file paths and locating the MuseScore executable's path.
+
+    Attributes:
+        current_file_path (str): The absolute path of the current file.
+
+    Methods:
+        __init__(self):
+        project_directory(self):
+        museScore_path(self):
+        
+    Example:
+        >>> path_util = PathUtility()
+        >>> path_util.current_file_path
+        /path/to/the/file
+    """
+    
     def __init__(self):
         self.current_file_path = os.path.abspath(__file__)
 
     def project_directory(self):
+        """
+        Get the path to the project directory.
+
+        Args:
+            None
+
+        Returns:
+            str: The path to the project directory.
+
+        Example:
+            >>> path_util = PathUtility()
+            >>> project_dir = path_util.project_directory()
+        """
         return os.path.dirname(os.path.dirname(self.current_file_path))
 
     def museScore_path(self):
+        """
+        Locate and return the path to the MuseScore executable.
+
+        Args:
+            None
+
+        Returns:
+            str: The path to the MuseScore executable.
+
+        Raises:
+            FileNotFoundError: If MuseScore installation is not found.
+
+        Example:
+            >>> path_util = PathUtility()
+            >>> muse_score_path = path_util.museScore_path()
+        
+        Notes:
+            - On Linux, this method searches for MuseScore in the 'temp' directory within the project directory.
+            - On macOS, it checks specific directories, including the standard installation path and the user's 'bin' directory.
+            - On Windows, it searches in common installation paths for both 32-bit and 64-bit versions.
+        """
         mscore_mac_executable = 'mscore' if sys.platform != 'win32' else 'mscore.exe'
         museScore_window_executable = 'MuseScore' if sys.platform != 'win32' else 'MuseScore4.exe'
         museScore_linux_executable = 'MuseScore.AppImage' if sys.platform.startswith('linux') else None
@@ -21,7 +72,6 @@ class PathUtility:
             return path
         directories = list()
         if sys.platform.startswith('linux'):
-            # linux
             directories += [
                 os.path.join(self.project_directory(), 'temp')
             ]

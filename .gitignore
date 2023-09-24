@@ -19,7 +19,7 @@ server.log
 
 # Distribution / packaging
 .Python
-build/
+/build/
 develop-eggs/
 dist/
 downloads/
@@ -317,7 +317,7 @@ dist
 /coverage
 
 # production
-/build
+/build/
 
 # misc
 .DS_Store

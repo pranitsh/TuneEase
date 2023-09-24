@@ -1,29 +1,56 @@
 import logging
 
 class ServerLogger:
-    def __init__(self, name):
-        name = name.replace('.log','')
-        logger = logging.getLogger(name)    # Define the logger with the specified name
-        logger.setLevel(logging.DEBUG)      # Set the logger level to DEBUG
+    """
+    A utility class that configures and then can provide a logger instance for server-side logging.
 
-        # Define the format of the log messages including time, name of logger, level of log and message
+    Args:
+        name (str): The name of the logger, typically the name of the log file.
+
+    Attributes:
+        logger (logging.Logger): The configured logger instance.
+
+    Methods:
+        __init__(self, name):
+        get(self):
+
+    Example:
+        >>> ServerLogger("server.log").get()
+    """
+
+    def __init__(self, name):
+        """
+        Initialize a ServerLogger with the given name.
+
+        Args:
+            name (str): The name of the logger, typically the name of the log file.
+
+        Notes:
+            Sets the loggger's log level to DEBUG, configures the log message format, and setups logs to ouput to a file and the console.
+        """
+        name = name.replace('.log','')
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                           datefmt='%m/%d/%Y %I:%M:%S %p')  
-
-        # Create a file handler and set its level to DEBUG
         fh = logging.FileHandler(name + ".log")
         fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)        
-
-        # Create a console handler with a higher log level
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
-
         self.logger = logger
 
     def get(self):
-        # Get the instance of logger
+        """
+        Get the configured logger instance.
+
+        Returns:
+            logging.Logger: The configured logger instance for server-side logging.
+
+        Example:
+            >>> ServerLogger("server.log").get()
+        """
         return self.logger

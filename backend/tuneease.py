@@ -1,12 +1,33 @@
 import os
 import music21 
 import random
-from logger import ServerLogger
-from pathutility import PathUtility
-from converter import Converter
-from getmusic.track_generation import main as music_generator
+from .logger import ServerLogger
+from .pathutility import PathUtility
+from .converter import Converter
+from .getmusic.track_generation import main as music_generator
 
 class TuneEase:
+    """
+    A class for generating, converting, and processing music using TuneEase.
+
+    Attributes:
+        util (PathUtility): An instance of PathUtility for handling file paths.
+        museScore_path (str): The path to the MuseScore executable.
+        logger (ServerLogger): An instance of ServerLogger for logging messages.
+        converter (Converter): An instance of Converter for file conversion.
+
+    Methods:
+        __init__(self, museScore_path=""):
+        convert(self, filepath):
+        split(self, filepath, start, end=""):
+        number(self, filepath):
+        random_score(self, time_signature='4/4', number_measures='8'):
+        generate(self, form, file=None):
+
+    Example:
+        >>> tuneease = TuneEase()
+        >>> output_path = tuneease.convert(input_path)
+    """
     util = PathUtility()
     museScore_path = util.museScore_path()
     logger = ServerLogger("tuneease.log").get()
@@ -16,14 +37,42 @@ class TuneEase:
         self.converter = Converter(museScore_path=self.museScore_path)
 
     def convert(self, filepath):
+        """
+        Converts a music file to the MusicXML format.
+
+        Args:
+            filepath (str): The path to the input music file.
+
+        Returns:
+            str or Exception: The path to the converted MusicXML file if successful, or an exception if an error occurs.
+
+        Example:
+            >>> tuneease = TuneEase()
+            >>> converted_file = tuneease.convert("input_music.mid")
+        """
         self.logger.info("Running convert")
         try:
-            output_filepath = self.converter.convert(filepath)
+            output_filepath = self.converter.convert_to(filepath)
             return output_filepath
         except Exception as e:
             return e
 
     def split(self, filepath, start, end = ""):
+        """
+        Get specific measures from a music file and save the result as MusicXML.
+
+        Args:
+            filepath (str): The path to the input music file.
+            start (int): The starting measure number.
+            end (int, optional): The ending measure number. If not provided, only the start measure is extracted.
+
+        Returns:
+            str: The path to the split MusicXML file.
+
+        Example:
+            >>> tuneease = TuneEase()
+            >>> split_filepath = tuneease.split('inputfile.xml', 2, 5)
+        """
         self.logger.info("Running split" + filepath + " with " + str(start) + "-" + str(end))
         filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
         measure_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-measure-' + str(start) + "-" + str(end) + ".xml")
@@ -45,6 +94,19 @@ class TuneEase:
             return measure_filepath
 
     def number(self, filepath):
+        """
+        Add measure numbers to a music score file.
+
+        Args:
+            filepath (str): The path to the input music score file.
+
+        Returns:
+            str: The path to the output music score file with measure numbers.
+
+        Example:
+            >>> tuneease = TuneEase()
+            >>> output_file = tuneease.number("input.xml")
+        """
         self.logger.info("Running number on {}".format(filepath))
         filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
         output_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-number.xml')
@@ -60,6 +122,23 @@ class TuneEase:
         return output_filepath
 
     def random_score(self, time_signature = '4/4', number_measures = '8'):
+        """
+        Generate a random music score.
+
+        Args:
+            time_signature (str): The time signature of the generated score.
+            number_measures (str): The number of measures in the generated score.
+
+        Returns:
+            str: The path to the generated random music score file.
+
+        Example:
+            >>> tuneease = TuneEase()
+            >>> random_score_file = tuneease.random_score(time_signature='4/4', number_measures='8')
+
+        Notes:
+            - This method generates a random music score with random notes along with random correct or incorrect signs above each image.
+        """
         self.logger.info("Running random score")
         quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
         number_measures = int(number_measures) * int(time_signature.split('/')[0])
@@ -77,12 +156,54 @@ class TuneEase:
             n = music21.note.Note(note_name, quarterLength=quarter_length)
             n.lyric = random.choice(lyrics)
             s.append(n)
-        filepath = os.path.join(self.util.project_directory(), 'temp', "random.xml")
+        idx = 0
+        while os.path.exists(os.path.join(self.util.project_directory(), 'temp', f"random{idx}.xml")):
+            idx += 1
+        filepath = os.path.join(self.util.project_directory(), 'temp', f"random{idx}.xml")
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         s.write('musicxml', filepath)
         return filepath
 
     def generate(self, form, file = None):
+        """
+        Generate music based on user input or a template file.
+
+        Args:
+            form (dict): A dictionary containing user input parameters.
+            file (str): Optional. A file to base the generated content on.
+
+        Returns:
+            str: The path to the generated music XML file.
+
+        Example:
+            >>> tuneease = TuneEase()
+            >>> user_input = {
+            ...     'condition-lead': 'True',
+            ...     'condition-bass': 'False',
+            ... }
+            >>> generated_file = tuneease.generate(user_input)
+
+        Notes:
+            - Defaults follow below: condition is what is in the input, content is what is to be outputed
+            conditional_tracks = ", ".join([
+                str(form.get("condition-lead", "False") == "True"),
+                str(form.get("condition-bass", "False") == "True"),
+                str(form.get("condition-drums", "False") == "True"),
+                str(form.get("condition-guitar", "False") == "True"),
+                str(form.get("condition-piano", "False") == "True"),
+                str(form.get("condition-strings", "False") == "True"),
+                str(True) # required
+            ])
+            content_tracks = ", ".join([
+                str(form.get("content-lead", "False") == "True"),
+                str(form.get("content-bass", "False") == "True"),
+                str(form.get("content-drums", "False") == "True"),
+                str(form.get("content-guitar", "False") == "True"),
+                str(form.get("content-piano", "True") == "True"),
+                str(form.get("content-strings", "False") == "True"),
+                str(False)
+            ])
+        """
         self.logger.info("Received a generate request with {}".format(str(form)))
         conditional_tracks = ", ".join([
             str(form.get("condition-lead", "False") == "True"),
@@ -105,12 +226,8 @@ class TuneEase:
         seed = form.get("seed", "0")
 
         if file:
-            self.logger.info("Performing with input file")
-            assert file.filename != '', "File is empty"
-            assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
-            filepath = os.path.join(self.util.project_directory(), 'temp', file.filename)
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            file.save(filepath)
+            assert os.path.exists(file)
+            filepath = file
         else:
             self.logger.info("Performing with template file")
             time_signature = form.get('time_signature', '4/4')
