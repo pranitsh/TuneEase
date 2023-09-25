@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import requests
 
 class PathUtility:
     """
@@ -22,6 +23,7 @@ class PathUtility:
     
     def __init__(self):
         self.current_file_path = os.path.abspath(__file__)
+        self.checkpoint()
 
     def project_directory(self):
         """
@@ -99,3 +101,17 @@ class PathUtility:
                 if os.path.exists(path):
                     return path
         raise FileNotFoundError('MuseScore installation not found. Use the flag --museScore_path')
+
+    def checkpoint(self):
+        if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")):
+            filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")
+            file_url = 'https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth'
+            response = requests.get(file_url, stream=True)
+            if response.status_code == 200:
+                with open(filename, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            file.write(chunk)
+                print(f'Downloaded {filename} successfully.')
+            else:
+                print(f'Failed to download {file_url}. Status code: {response.status_code}')

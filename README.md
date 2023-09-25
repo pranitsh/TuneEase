@@ -1,11 +1,11 @@
 # Tune Ease
 
-Welcome to Tune Ease! This project allows you to  for generating music with AI, converting music to different file types, interpreting music, and more.
+Welcome to Tune Ease! This project allows for generating music with AI, converting music to different file types, interpreting music, and more.
 
 ## Requirements
 
 - You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb is recommended.
-- 5 gb or more of disk space
+- 6-7 gb of disk space, depending on the operating system.
 
 ## Installing
 Listed by the number of times I tried it. (Way too many times!)
@@ -87,12 +87,33 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
 
 ## Changes to Getmusic
 
-1. Introduced the ability to use both a CPU or a GPU.
+1. Introduced the ability to use a CPU or a GPU.
 2. Structural changes to the structure.
    1. Instead of using a yaml to instantiate the model, I used a new train.py with a variable that contains the data from train.yaml
    2. Created a folder named pipeline that contains code that was previously duplicated many times. (Quite painful...)
    3. Improved the Pylint score from 1.25 to 2.46
 3. Changed hierarchy and propagated changes.
+4. Packaged this into a repo.
+
+# Usage
+
+Want to quickly generate something?
+```sh
+python -m backend.tuneease
+``` 
+If you installed through pip
+```sh
+tuneease
+```
+
+You can use this as an import statement and follow the tuneease.py __name__ == "__main__" block. Try it out!
+```python
+from backend.tuneease import TuneEase
+tuneease = TuneEase()
+print(tuneease.generate()) # Prints the resulting file path
+```
+
+There is documentation (fortunately) that I wrote to help you along the way. Just use help and you'll see it. If you don't, it's not part of the web app I created.
 
 # From the previous getmusic readme
 ## Usage Tips

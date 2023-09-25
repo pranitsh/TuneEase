@@ -1,31 +1,21 @@
 from distutils.core import setup
-import requests
 
 def main():
-    file_url = 'https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth'
-    response = requests.get(file_url)
-    if response.status_code == 200:
-        with open('downloaded_file.ext', 'wb') as file:
-            file.write(response.content)
-        print('File downloaded successfully.')
-    else:
-        print('Failed to download the file. Status code:', response.status_code)
-
     setup(
-        name='tune-ease',
-        packages=['tune-ease'],
+        name='tuneease',
+        packages=['backend'],
         version='0.0.1',
         license='MIT',
         description='Generate music with AI',
         author='Pranit Shah',
         author_email='ppshah2023@gmail.com',
-        url='',
-        download_url='',
+        url='https://www.pranitshah.cyou/musetune',
+        download_url='https://github.com/Pshah2023/TuneEase/releases/tag/0.1.0',
         keywords=['music', 'AI', 'getmusic'],
         install_requires=[
             'torch==2.0.1',
-            'torchaudio==2.0.1',
-            'torchvision==2.0.1',
+            'torchaudio==2.0.2',
+            'torchvision==0.15.2',
             'absl-py==1.4.0',
             'blinker==1.6.2',
             'cachetools==5.3.1',
@@ -95,6 +85,12 @@ def main():
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
         ],
+        entry_points={
+            'console_scripts': [
+                'tuneease = backend.tuneease:tuneease'
+            ]
+        },
+
     )
 
 if __name__ == "__main__":
