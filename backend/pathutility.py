@@ -107,10 +107,12 @@ class PathUtility:
             filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")
             file_url = 'https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth'
             response = requests.get(file_url, stream=True)
+            idx = 0
             if response.status_code == 200:
                 with open(filename, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
+                            print('Writing chunk', idx)
                             file.write(chunk)
                 print(f'Downloaded {filename} successfully.')
             else:
