@@ -12,11 +12,11 @@ Listed by the number of times I tried it. (Way too many times!)
 
 ### Option 1:
 If you cloned it, you can do:
-`pip insteal -e .`
+`pip install -e .`
 If you have yet to, you can do:
 `pip install -e git+https://github.com/Pshah2023/TuneEase.git@main#egg=TuneEase --upgrade`
 
-Maybe in the future, you'll be able to `pip install tuneease`.
+Maybe in the future, you'll be able to `pip install tuneease`. I'm going to ask the authors first.
 
 ### Option 2: Using Docker
 1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: https://www.docker.com/get-started

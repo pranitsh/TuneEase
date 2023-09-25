@@ -49,15 +49,15 @@ def test_number(get_tuneease, get_music_file):
     assert os.path.exists(output_filepath)
     
 def test_random_score(get_tuneease):
-    tuner = get_tuneease
-    random_score_file = tuner.random_score()
+    tuneease = get_tuneease
+    random_score_file = tuneease.random_score()
     assert os.path.exists(random_score_file)
 
 def test_generate(get_tuneease):
-    tuner = get_tuneease
+    tuneease = get_tuneease
     test_param = {
         "condition-lead": "True",
         "content-bass": "True",
     }
-    output_filepath = tuner.generate(test_param)
+    output_filepath = tuneease.generate(test_param)
     assert os.path.exists(output_filepath)    
