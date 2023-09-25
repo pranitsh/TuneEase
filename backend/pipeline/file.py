@@ -2,11 +2,11 @@ import miditoolkit
 import torch
 import numpy as np
 from .encoding import MIDI_to_encoding
-from .key_chord import pos_in_bar
+from .key_chord import TokenHelper, KeyChordDetails
 from .encoding_helpers  import b2e, t2e, time_signature_reduce
-from .presets import inst_to_row, root_list, kind_list, prog_to_abrv
+from .presets import inst_to_row, prog_to_abrv, RootKinds
 from ..getmusic.utils.midi_config import bar_max, deduplicate, sample_len_max, sample_overlap_rate
-from .file_helpers import timeout, get_hash, lock_set, midi_dict, lock_write, writer
+from .file_helpers import get_midi_dict, timeout, get_hash, lock_set, lock_write, writer
 
 track_name = ['lead', 'bass', 'drum', 'guitar', 'piano', 'string']
 
@@ -27,12 +27,10 @@ def create_pos_from_str(str_cmd, pos):
 
 
 def F(filename, file_name, conditional_tracks = None, content_tracks = None, condition_inst = None, chord_from_single = None):
+    t_h = TokenHelper()
+    k_c_d = KeyChordDetails()
+    r_h = RootKinds()
     if filename == "track_generation.py":
-        global tokens_to_ids
-        global ids_to_tokens
-        global empty_index
-        global pad_index
-
         empty_tracks = ~conditional_tracks & ~content_tracks
         
         conditional_tracks &= ~empty_tracks # emptied tracks can not be condition
@@ -49,26 +47,22 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
             with_chord = False
 
         # try:
-        encoding, pitch_shift, tpc = MIDI_to_encoding("track_generation.py", midi_obj, with_chord, condition_inst, chord_from_single)
+        encoding, pitch_shift, tpc = MIDI_to_encoding('track_generation.py', midi_obj, with_chord, condition_inst, chord_from_single)
 
         if len(encoding) == 0:
             print('ERROR(BLANK): ' + file_name + '\n', end='')
             return None, 0
-
         bar_index_offset = 0
 
-        figure_size = encoding[-1][0] * pos_in_bar + encoding[-1][1]
+        figure_size = encoding[-1][0] * k_c_d.pos_in_bar + encoding[-1][1]
 
         pad_length = 1 #(512 - figure_size % 512)
 
         figure_size += pad_length
-
         conditional_bool = conditional_tracks.repeat(1,figure_size)
         
         empty_pos = empty_tracks.repeat(1, figure_size).type(torch.bool)
-
-        datum = pad_index * torch.ones(14, figure_size, dtype=float)
-        
+        datum = t_h.pad_index * torch.ones(14, figure_size, dtype=float)
         oov = 0
         inv = 0
         
@@ -95,10 +89,10 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
             
             if e[2] == 129:
                 row = inst_to_row[str(inst)]
-                r = root_list[e[3]]
-                k = kind_list[e[4]]
-                datum[2 * row][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[r]
-                datum[2 * row + 1][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[k]
+                r = r_h.root_list[e[3]]
+                k = r_h.kind_list[e[4]]
+                datum[2 * row][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = t_h.tokens_to_ids[r]
+                datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = t_h.tokens_to_ids[k]
                 idx += 1
                 continue
             
@@ -123,22 +117,22 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
                 continue
             
             row = inst_to_row[str(inst)]
-            dur = tokens_to_ids['T'+str(e[4])] # duration
+            dur = t_h.tokens_to_ids['T'+str(e[4])] # duration
             
             chord_string = ' '.join(chord_list)
             token = prog_to_abrv[str(inst)] + chord_string
 
-            if token in tokens_to_ids:
-                pitch = tokens_to_ids[token]
-                assert (dur < pad_index) and (pitch > pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
-                datum[2 * row][pos_in_bar * bar + pos] = pitch
-                datum[2 * row + 1][pos_in_bar * bar + pos] = dur
+            if token in t_h.tokens_to_ids:
+                pitch = t_h.tokens_to_ids[token]
+                assert (dur < t_h.pad_index) and (pitch > t_h.pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
+                datum[2 * row][k_c_d.pos_in_bar * bar + pos] = pitch
+                datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos] = dur
                 inv += 1
             else:
                 oov += 1
 
-        datum = torch.where(empty_pos, empty_index, datum)
-        datum = torch.where(((datum != empty_index).float() * (1 - conditional_bool)).type(torch.bool), empty_index + 1, datum)
+        datum = torch.where(empty_pos, t_h.empty_index, datum)
+        datum = torch.where(((datum != t_h.empty_index).float() * (1 - conditional_bool)).type(torch.bool), t_h.empty_index + 1, datum)
 
         # datum = datum[:,:1280]
         # conditional_bool = conditional_bool[:,:1280]
@@ -147,22 +141,17 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
         datum = datum[:,:512]
         conditional_bool = conditional_bool[:,:512]
 
-        not_empty_pos = (torch.tensor(np.array(datum)) != empty_index).float()
+        not_empty_pos = (torch.tensor(np.array(datum)) != t_h.empty_index).float()
 
         have_cond = True
         
         for i in range(14):
-            if with_chord and conditional_tracks[i] == 1 and ((datum[i] == pad_index).sum() + (datum[i] == empty_index).sum()) == min(512,figure_size):
+            if with_chord and conditional_tracks[i] == 1 and ((datum[i] == t_h.pad_index).sum() + (datum[i] == t_h.empty_index).sum()) == min(512,figure_size):
                 have_cond = False
                 break
 
         return datum.unsqueeze(0), torch.tensor(tempo), not_empty_pos, conditional_bool, pitch_shift, tpc, have_cond
     elif filename == "position_generation.py":
-        global tokens_to_ids
-        global ids_to_tokens
-        global empty_index
-        global pad_index
-
         midi_obj = miditoolkit.midi.parser.MidiFile(file_name)
 
         encoding, pitch_shift, tpc = MIDI_to_encoding("position_generation.py", midi_obj)
@@ -173,13 +162,13 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
 
         bar_index_offset = 0
 
-        figure_size = max(encoding[-1][0] * pos_in_bar + encoding[-1][1], 512)
+        figure_size = max(encoding[-1][0] * k_c_d.pos_in_bar + encoding[-1][1], 512)
 
         pad_length = 1 #(512 - figure_size % 512)
 
         figure_size += pad_length
 
-        datum = pad_index * torch.ones(14, figure_size, dtype=float)
+        datum = t_h.pad_index * torch.ones(14, figure_size, dtype=float)
         
         oov = 0
         inv = 0
@@ -210,10 +199,10 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
             
             if e[2] == 129:
                 row = inst_to_row[str(inst)]
-                r = root_list[e[3]]
-                k = kind_list[e[4]]
-                datum[2 * row][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[r]
-                datum[2 * row + 1][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[k]
+                r = r_h.root_list[e[3]]
+                k = r_h.kind_list[e[4]]
+                datum[2 * row][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = t_h.tokens_to_ids[r]
+                datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = t_h.tokens_to_ids[k]
                 idx += 1
                 continue
             
@@ -238,23 +227,23 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
                 continue
             
             row = inst_to_row[str(inst)]
-            dur = tokens_to_ids['T'+str(e[4])] # duration
+            dur = t_h.tokens_to_ids['T'+str(e[4])] # duration
             
             chord_string = ' '.join(chord_list)
             token = prog_to_abrv[str(inst)] + chord_string
 
             track_set.add(track_name[prog_to_abrv[str(inst)]])
 
-            if token in tokens_to_ids:
-                pitch = tokens_to_ids[token]
-                assert (dur < pad_index) and (pitch > pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
-                datum[2 * row][pos_in_bar * bar + pos] = pitch
-                datum[2 * row + 1][pos_in_bar * bar + pos] = dur
+            if token in t_h.tokens_to_ids:
+                pitch = t_h.tokens_to_ids[token]
+                assert (dur < t_h.pad_index) and (pitch > t_h.pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
+                datum[2 * row][k_c_d.pos_in_bar * bar + pos] = pitch
+                datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos] = dur
                 inv += 1
             else:
                 oov += 1
 
-        datum[:,-pad_length:] = empty_index
+        datum[:,-pad_length:] = t_h.empty_index
 
         print('The music has {} tracks, with {} positions'.format(track_set, datum.size()[1]))
         print('Representation Visualization:')
@@ -268,10 +257,10 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
         empty_pos = create_pos_from_str(empty_str, empty_pos)
         condition_pos = create_pos_from_str(condition_str, condition_pos)
 
-        datum = torch.where(empty_pos.type(torch.bool), empty_index, datum)
-        datum = torch.where(((datum != empty_index).float() * (1 - condition_pos)).type(torch.bool), empty_index + 1, datum)
+        datum = torch.where(empty_pos.type(torch.bool), t_h.empty_index, datum)
+        datum = torch.where(((datum != t_h.empty_index).float() * (1 - condition_pos)).type(torch.bool), t_h.empty_index + 1, datum)
         
-        not_empty_pos = (torch.tensor(np.array(datum)) != empty_index).float()
+        not_empty_pos = (torch.tensor(np.array(datum)) != t_h.empty_index).float()
         
         return datum.unsqueeze(0), torch.tensor(tempo), not_empty_pos, condition_pos, pitch_shift, tpc
     elif filename == "to_oct.py":
@@ -324,6 +313,7 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
                 except BaseException as e:
                     pass
                 lock_set.acquire()
+                midi_dict = get_midi_dict()
                 if midi_hash in midi_dict:
                     dup_file_name = midi_dict[midi_hash]
                     duplicated = True

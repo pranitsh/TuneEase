@@ -6,8 +6,7 @@ import random
 from logger import ServerLogger
 from pathutility import PathUtility
 from converter import Converter
-from getmusic.track_generation import main as music_generator
-import subprocess
+from .track_generation import main as music_generator
 from argparse import ArgumentParser
 
 util = PathUtility()

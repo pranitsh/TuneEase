@@ -2,11 +2,17 @@ import os
 import datetime
 import argparse
 import numpy as np
-from .compute import NUM_NODE, NODE_RANK, DIST_URL
+from .compute import Node
 from ..getmusic.utils.misc import seed_everything
 
+def validate_binary_string(arg):
+    if not arg.isdigit() or len(arg) != 7:
+        raise argparse.ArgumentTypeError("Binary string must be 7 characters long and consist of 0s and 1s only.")
+    return arg
 
-def get_args():
+
+def get_args(input_args):
+    node = Node()
     parser = argparse.ArgumentParser(description='PyTorch Training script')
     # Contains additional args as necessary
     common_args = [
@@ -14,13 +20,13 @@ def get_args():
         ('--name', str, 'inference_cache', 'the name of this experiment, if not provided, set to the name of config file'),
         ('--output', str, 'cache', 'directory to save the results'),
         ('--log_frequency', int, 10, 'print frequency'),
-        ('--load_path', str, '/backend/getmusic/checkpoint.pth', 'path to model that need to be loaded used for loading pretrained model'),
+        ('--load_path', str, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "checkpoint.pth"), 'path to model that need to be loaded used for loading pretrained model'),
         ('--resume_name', str, None, 'resume one experiment with the given name'),
         ('--auto_resume', bool, False, 'resume the training'),
-        ('--num_node', int, NUM_NODE, 'number of nodes for distributed training'),
+        ('--num_node', int, node.NUM_NODE, 'number of nodes for distributed training'),
         ('--ngpus_per_node', int, 8, 'number of gpu on one node'),
-        ('--node_rank', int, NODE_RANK, 'node rank for distributed training'),
-        ('--dist_url', str, DIST_URL, 'url used to set up distributed training'),
+        ('--node_rank', int, node.NODE_RANK, 'node rank for distributed training'),
+        ('--dist_url', str, node.DIST_URL, 'url used to set up distributed training'),
         ('--gpu', int, 0, 'GPU id to use. If given, only the specific gpu will be used, and ddp will be disabled'),
         ('--local_rank', int, -1, 'node rank for distributed training'),
         ('--sync_bn', bool, False, 'use sync BN layer'),
@@ -29,18 +35,20 @@ def get_args():
         ('--seed', int, 0, 'seed for initializing training'),
         ('--cudnn_deterministic', bool, False, 'set cudnn.deterministic True'),
         ('--amp', bool, False, 'automatic mixture of precesion'),
-        ('--conditional_name', str, None),
-        ('--content_name', str, None),
+        ('--conditional_name', str, None, "I'm not sure what this does. Send a pull request please!"),
+        ('--content_name', str, None, "I'm not sure what this does. Send a pull request please!"),
+        ('--conditional_tracks', validate_binary_string, '0000000', 'the content tracks to base the generation on'),
+        ('--content_tracks', validate_binary_string, '0000110', 'the tracks to generate'),
         ('--debug', bool, False, 'set as debug mode'),
-        ('--do_sample', bool, True),
+        ('--do_sample', bool, True, "I'm not sure what this does. Send a pull request please!"),
         ('--file_path', str, None, "the output filepath"),
-        ('--skip_step', int, 0),
-        ('--decode_chord', bool, False),
-        ('--chord_from_single', bool, False),
-        ('--no_ema', bool, True)
-        ('--no_load_optimizer_and_scheduler', bool, True),
-        ('--no_load_others', bool, True)
-        ('--training_model', bool, False, "If you are training the model, this changes the output directory to 'OUTPUT'")
+        ('--skip_step', int, 0, "I'm not sure what this does. Send a pull request please!"),
+        ('--decode_chord', bool, False, "I'm not sure what this does. Send a pull request please!"),
+        ('--chord_from_single', bool, False, "I'm not sure what this does. Send a pull request please!"),
+        ('--no_ema', bool, True, "I'm not sure what this does. Send a pull request please!"),
+        ('--no_load_optimizer_and_scheduler', bool, True, "I'm not sure what this does. Send a pull request please!"),
+        ('--no_load_others', bool, True, "I'm not sure what this does. Send a pull request please!"),
+        ('--training_model', bool, False, "If you are training the model, this changes the output directory to 'OUTPUT' After the latest update to getmusic. I'm not sure this is relevant."),
     ]
     for arg, arg_type, default_val, help in common_args:
         parser.add_argument(arg, type=arg_type, default=default_val, help=help)
@@ -50,7 +58,10 @@ def get_args():
         default=None,
         nargs=argparse.REMAINDER,
     )
-    args = parser.parse_args()
+    if input_args == None:
+        args = parser.parse_args()
+    else: 
+        args = parser.parse_args(input_args)
     args.cwd = os.path.abspath(os.path.dirname(__file__))
     # Common to all Args
     seed_everything(args.seed, args.cudnn_deterministic)

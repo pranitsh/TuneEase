@@ -1,7 +1,6 @@
 import pickle
 import numpy as np
 
-
 class IndexedDataset:
     def __init__(self, path):
         super().__init__()

@@ -1,8 +1,8 @@
 import os
 import time
 import torch
-from getmusic.utils.io import write_args, save_config_to_yaml
-from getmusic.distributed.distributed import is_primary
+from ..utils.io import write_args, save_config_to_yaml
+from ..distributed.distributed import is_primary
 
 class Logger(object):
     def __init__(self, args):

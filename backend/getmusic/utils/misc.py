@@ -52,8 +52,6 @@ def modify_config_for_debug(config):
     config['dataloader']['batch_size'] = 1
     return config
 
-
-
 def get_model_parameters_info(model):
     # for mn, m in model.named_modules():
     parameters = {'overall': {'trainable': 0, 'non_trainable': 0, 'total': 0}}
@@ -98,7 +96,6 @@ def get_model_parameters_info(model):
     
     format_dict(parameters)
     return parameters
-
 
 def format_seconds(seconds):
     h = int(seconds // 3600)

@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from getmusic.utils.misc import instantiate_from_config
+from ...utils.misc import instantiate_from_config
 
 def disabled_train(self, mode=True):
     return self

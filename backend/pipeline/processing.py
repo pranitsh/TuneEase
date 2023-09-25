@@ -1,23 +1,29 @@
 import numpy as np
-from .key_chord import key_profile
+from .key_chord import KeyChordDetails
 
 def normalize_to_c_major(filename, e):
-    if filename == "position_generation.py":
+    k_c_d = KeyChordDetails()
+    if filename == "track_generation.py":
         def get_pitch_class_histogram(notes, use_duration=True, use_velocity=True, normalize=True):
             weights = np.ones(len(notes))
-            # Assumes that duration and velocity have equal weight
             if use_duration:
-                weights *= [note[4] for note in notes]  # duration
+                weights *= [note[4] for note in notes]  
             if use_velocity:
-                weights *= [note[5] for note in notes]  # velocity
+                weights *= [note[5] for note in notes] 
             histogram, _ = np.histogram([note[3] % 12 for note in notes], bins=np.arange(
                 13), weights=weights, density=normalize)
             if normalize:
                 histogram /= (histogram.sum() + (histogram.sum() == 0))
             return histogram
 
-        histogram = get_pitch_class_histogram([i for i in e if i[2] < 128])
-        key_candidate = np.dot(key_profile, histogram)
+        pitch_histogram = [i for i in e if i[2] < 128]
+        print("Is this it?")
+        print(e[0])
+        if len(pitch_histogram) == 0:
+            return e, True, 0
+
+        histogram = get_pitch_class_histogram(pitch_histogram)
+        key_candidate = np.dot(k_c_d.key_profile, histogram)
         key_temp = np.where(key_candidate == max(key_candidate))
         major_index = key_temp[0][0]
         minor_index = key_temp[0][1]
@@ -41,26 +47,22 @@ def normalize_to_c_major(filename, e):
         e = [tuple(k + pitch_shift if j == 3 and i[2] != 128 else k for j, k in enumerate(i))
             for i in e]
         return e, is_major, pitch_shift
-    elif filename == "track_generation.py":
+    elif filename == "position_generation.py":
         def get_pitch_class_histogram(notes, use_duration=True, use_velocity=True, normalize=True):
             weights = np.ones(len(notes))
+            # Assumes that duration and velocity have equal weight
             if use_duration:
-                weights *= [note[4] for note in notes]  
+                weights *= [note[4] for note in notes]  # duration
             if use_velocity:
-                weights *= [note[5] for note in notes] 
+                weights *= [note[5] for note in notes]  # velocity
             histogram, _ = np.histogram([note[3] % 12 for note in notes], bins=np.arange(
                 13), weights=weights, density=normalize)
             if normalize:
                 histogram /= (histogram.sum() + (histogram.sum() == 0))
             return histogram
 
-        pitch_histogram = [i for i in e if i[2] < 128]
-        print(e[0])
-        if len(pitch_histogram) == 0:
-            return e, True, 0
-
-        histogram = get_pitch_class_histogram(pitch_histogram)
-        key_candidate = np.dot(key_profile, histogram)
+        histogram = get_pitch_class_histogram([i for i in e if i[2] < 128])
+        key_candidate = np.dot(k_c_d.key_profile, histogram)
         key_temp = np.where(key_candidate == max(key_candidate))
         major_index = key_temp[0][0]
         minor_index = key_temp[0][1]
@@ -99,7 +101,7 @@ def normalize_to_c_major(filename, e):
             return histogram
 
         histogram = get_pitch_class_histogram([i for i in e if i[2] < 128])
-        key_candidate = np.dot(key_profile, histogram)
+        key_candidate = np.dot(k_c_d.key_profile, histogram)
         key_temp = np.where(key_candidate == max(key_candidate))
         major_index = key_temp[0][0]
         minor_index = key_temp[0][1]

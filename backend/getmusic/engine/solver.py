@@ -2,13 +2,13 @@ import os
 import time
 import math
 import torch
-from getmusic.utils.misc import instantiate_from_config, format_seconds
-from getmusic.distributed.distributed import reduce_dict
-from getmusic.distributed.distributed import is_primary
-from getmusic.utils.misc import get_model_parameters_info
-from getmusic.engine.ema import EMA
-import getmusic.utils.midi_config as mc
-from ...pipeline.presets import root_dict, kind_dict
+from ..utils.misc import instantiate_from_config, format_seconds, get_model_parameters_info
+from ..distributed.distributed import reduce_dict
+from ..distributed.distributed import is_primary
+from ..engine.ema import EMA
+from ..utils import midi_config as mc
+from ...pipeline.presets import RootKinds
+from ...pipeline.key_chord import TokenHelper
 
 try:
     from torch.cuda.amp import autocast, GradScaler
@@ -27,6 +27,8 @@ class Solver(object):
         self.model = model 
         self.dataloader = dataloader
         self.logger = logger
+        self.t_h = TokenHelper()
+        self.r_h = RootKinds()
         
         self.max_epochs = config['solver']['max_epochs']
         self.save_epochs = config['solver']['save_epochs']
@@ -45,14 +47,7 @@ class Solver(object):
             os.makedirs(self.ckpt_dir, exist_ok=True)
             os.makedirs(self.oct_dir, exist_ok=True)
 
-        self.ids_to_tokens = []
-        with open(config['solver']['vocab_path'],'r') as f:
-            tokens = f.readlines()
-            for idx, token in enumerate(tokens):
-                token, freq = token.strip().split('\t')
-                self.ids_to_tokens.append(token)
-
-            self.logger.log_info('Load dictionary: {} tokens.'.format(len(self.ids_to_tokens)))
+        self.logger.log_info('Load dictionary: {} tokens.'.format(len(self.t_h.ids_to_tokens)))
 
         beat_note_factor =mc.beat_note_factor
         max_notes_per_bar = mc.max_notes_per_bar
@@ -531,10 +526,10 @@ class Solver(object):
                 main_dur = datum[1][t].item()
                 assert (main_dur <= self.pad_index) and (main_pitch >= self.pad_index), 'pitch index is {} and dur index is {}'.format(main_pitch, main_dur)
                 if (main_pitch != self.pad_index) and (main_dur < self.pad_index):
-                    p = self.ids_to_tokens[main_pitch]
+                    p = self.t_h.ids_to_tokens[main_pitch]
                     if p[0] == 'M':
                         p = p[1:]
-                        encoding.append((bar,pos,80,p,self.ids_to_tokens[main_dur][1:],28,ts,tempo))
+                        encoding.append((bar,pos,80,p,self.t_h.ids_to_tokens[main_dur][1:],28,ts,tempo))
                     else:
                         print('out m')
 
@@ -542,8 +537,8 @@ class Solver(object):
                 bass_dur = datum[3][t].item()
                 assert bass_dur <= self.pad_index and bass_pitch >= self.pad_index, "{}, {}".format(bass_dur, bass_pitch)
                 if (bass_pitch != self.pad_index) and (bass_dur < self.pad_index):
-                    pitch = self.ids_to_tokens[bass_pitch]
-                    dur = self.ids_to_tokens[bass_dur]
+                    pitch = self.t_h.ids_to_tokens[bass_pitch]
+                    dur = self.t_h.ids_to_tokens[bass_dur]
                     if pitch[0] == 'B':
                         pitch = pitch[1:].split(' ')
                         for p in pitch:
@@ -555,8 +550,8 @@ class Solver(object):
                 drums_dur = datum[5][t].item()
                 assert drums_dur <= self.pad_index and drums_pitch >= self.pad_index, "{}, {}".format(drums_dur, drums_pitch)
                 if (drums_pitch != self.pad_index) and (drums_dur < self.pad_index):
-                    pitch = self.ids_to_tokens[drums_pitch]
-                    dur = self.ids_to_tokens[drums_dur]
+                    pitch = self.t_h.ids_to_tokens[drums_pitch]
+                    dur = self.t_h.ids_to_tokens[drums_dur]
                     if pitch[0] == 'D':
                         pitch = pitch[1:].split(' ')
                         for p in pitch:
@@ -568,8 +563,8 @@ class Solver(object):
                 guitar_dur = datum[7][t].item()
                 assert guitar_dur <= self.pad_index and guitar_pitch >= self.pad_index, "{}, {}".format(guitar_dur, guitar_pitch)
                 if (guitar_pitch != self.pad_index) and (guitar_dur < self.pad_index):
-                    pitch = self.ids_to_tokens[guitar_pitch]
-                    dur = self.ids_to_tokens[guitar_dur]
+                    pitch = self.t_h.ids_to_tokens[guitar_pitch]
+                    dur = self.t_h.ids_to_tokens[guitar_dur]
                     if pitch[0] == 'G':
                         pitch = pitch[1:].split(' ')
                         for p in pitch:
@@ -581,8 +576,8 @@ class Solver(object):
                 piano_dur = datum[9][t].item()
                 assert piano_dur <= self.pad_index and piano_pitch >= self.pad_index, "{}, {}".format(piano_dur, piano_pitch)
                 if (piano_pitch != self.pad_index) and (piano_dur < self.pad_index):
-                    pitch = self.ids_to_tokens[piano_pitch]
-                    dur = self.ids_to_tokens[piano_dur]
+                    pitch = self.t_h.ids_to_tokens[piano_pitch]
+                    dur = self.t_h.ids_to_tokens[piano_dur]
                     if pitch[0] == 'P':
                         pitch = pitch[1:].split(' ')
                         for p in pitch:
@@ -594,8 +589,8 @@ class Solver(object):
                 string_dur = datum[11][t].item()
                 assert string_dur <= self.pad_index and string_pitch >= self.pad_index, 'p:{},d:{}'.format(string_pitch,string_dur)
                 if (string_pitch != self.pad_index) and (string_dur < self.pad_index):
-                    pitch = self.ids_to_tokens[string_pitch]
-                    dur = self.ids_to_tokens[string_dur]
+                    pitch = self.t_h.ids_to_tokens[string_pitch]
+                    dur = self.t_h.ids_to_tokens[string_dur]
                     if pitch[0] == 'S':
                         pitch = pitch[1:].split(' ')
                         for p in pitch:
@@ -606,9 +601,9 @@ class Solver(object):
                 # just for chord debug
                 root_id = datum[12][t].item()
                 kind_id = datum[13][t].item()
-                if self.ids_to_tokens[root_id] in root_dict and self.ids_to_tokens[kind_id] in kind_dict:
-                    root = root_dict[self.ids_to_tokens[root_id]]
-                    kind = kind_dict[self.ids_to_tokens[kind_id]]
+                if self.t_h.ids_to_tokens[root_id] in self.r_h.root_dict and self.t_h.ids_to_tokens[kind_id] in self.r_h.kind_dict:
+                    root = self.r_h.root_dict[self.t_h.ids_to_tokens[root_id]]
+                    kind = self.r_h.kind_dict[self.t_h.ids_to_tokens[kind_id]]
                     encoding.append((bar,pos,129,root,kind,1,ts,tempo))
                    
         encoding.sort()

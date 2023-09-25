@@ -1,13 +1,13 @@
 import warnings
 import torch
-from getmusic.modeling.build import build_model
-from getmusic.data.build import build_dataloader
-from getmusic.utils.misc import merge_opts_to_config, modify_config_for_debug
-from getmusic.engine.logger import Logger
-from getmusic.engine.solver import Solver
-from getmusic.distributed.launch import launch
+from .getmusic.modeling.build import build_model
+from .getmusic.data.build import build_dataloader
+from .getmusic.utils.misc import merge_opts_to_config, modify_config_for_debug
+from .getmusic.engine.logger import Logger
+from .getmusic.engine.solver import Solver
+from .getmusic.distributed.launch import launch
 from .pipeline.args import get_args
-from .pipeline.train import config
+from .pipeline.config import Config
 
 def main():
     args = get_args()
@@ -35,7 +35,7 @@ def main_worker(local_rank, args):
     args.global_rank = args.local_rank + args.node_rank * args.ngpus_per_node
     args.distributed = args.world_size > 1
     print(args)
-    global config
+    config = Config().config
     config = merge_opts_to_config(config, args.opts)
     if args.debug:
         config = modify_config_for_debug(config)

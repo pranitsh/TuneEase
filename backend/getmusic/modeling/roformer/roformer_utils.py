@@ -1,6 +1,6 @@
-from .roformer import RoFormerConfig, DiffusionRoFormerModel
 import torch.nn as nn
 import torch
+from .roformer import RoFormerConfig, DiffusionRoFormerModel
 
 class DiffusionRoformerModel(nn.Module):
 

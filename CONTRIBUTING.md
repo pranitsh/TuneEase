@@ -1,11 +1,10 @@
-To check for duplicated code:
+To perform some quality checks on the code:
 ```sh
 pip install flake8 flake8-duplicated pylint autoflake
-# from project directory
 pylint --min-similarity-lines 2 .\backend\
 flake8 .
-
 ```
+Current score is a 2.45 out of 10. This is not going into precommit checks yet.
 
 To run the tests and see the benchmarks:
 ```sh

@@ -206,7 +206,7 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
             raise ValueError("You have to specify either input_ids or inputs_embeds")
 
         batch_size, track_num, seq_length = input_shape
-        inputs_embeds = self.word_embeddings(input_ids) # b, t, l, d
+        # inputs_embeds = self.word_embeddings(input_ids) # b, t, l, d
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
         past_key_values_length = past_key_values[0][0].shape[2] if past_key_values is not None else 0

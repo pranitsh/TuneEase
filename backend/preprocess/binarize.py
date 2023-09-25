@@ -5,15 +5,15 @@ import numpy as np
 import sys
 import os
 sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
-from getmusic.utils.midi_config import *
-from getmusic.data.indexed_datasets import IndexedDatasetBuilder
-from backend.getmusic.pipeline.presets import prog_to_abrv, inst_to_row, root_list, kind_list
+from ..getmusic.data.indexed_datasets import IndexedDatasetBuilder
+from ..pipeline.presets import prog_to_abrv, inst_to_row, RootKinds
+from ..pipeline.key_chord import TokenHelper, KeyChordDetails
 
-pos_in_bar = beat_note_factor * max_notes_per_bar * pos_resolution
-
-figure_size = bar_max * pos_in_bar
     
 def oct_to_rep(line):
+    t_h = TokenHelper()
+    k_c_d = KeyChordDetails()
+    r_h = RootKinds()
     
     no_empty_tracks = {'80':0,'32':0,'128':0,'25':0,'0':0,'48':0}
     main_num = line.count('<2-80>')
@@ -40,7 +40,7 @@ def oct_to_rep(line):
     
     chord_list = []
 
-    datum = pad_index * np.ones([14, 1 + figure_size],dtype=float)
+    datum = t_h.t_h.pad_index * np.ones([14, 1 + k_c_d.figure_size],dtype=float)
 
     idx = 0
     while idx != len(encoding) - 1:
@@ -56,10 +56,10 @@ def oct_to_rep(line):
 
         if e[2] == 129:
             row = inst_to_row[str(inst)]
-            r = root_list[e[3]]
-            k = kind_list[e[4]]
-            datum[2 * row][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[r]
-            datum[2 * row + 1][pos_in_bar * bar + pos : pos_in_bar * (bar + 1) + pos] = tokens_to_ids[k]
+            r = r_h.root_list[e[3]]
+            k = r_h.kind_list[e[4]]
+            datum[2 * row][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = tokens_to_ids[r]
+            datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos : k_c_d.pos_in_bar * (bar + 1) + pos] = tokens_to_ids[k]
             idx += 1
             continue
         
@@ -91,24 +91,24 @@ def oct_to_rep(line):
         if token in tokens_to_ids:
             pitch = tokens_to_ids[token]
             no_empty_tracks[str(e[2])] = 1
-            assert (dur < pad_index) and (pitch > pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
-            datum[2 * row][pos_in_bar * bar + pos] = pitch
-            datum[2 * row + 1][pos_in_bar * bar + pos] = dur
+            assert (dur < t_h.pad_index) and (pitch > t_h.pad_index), 'pitch index is {} and dur index is {}'.format(pitch, dur)
+            datum[2 * row][k_c_d.pos_in_bar * bar + pos] = pitch
+            datum[2 * row + 1][k_c_d.pos_in_bar * bar + pos] = dur
             inv += 1
         else:
             oov += 1
 
     if sum(no_empty_tracks.values()) > 1 and no_empty_tracks['80'] == 1: # 伴奏 + 主旋律
         
-        assert (datum == pad_index).sum() != 14 * (pos_in_bar * bar_max+1)
+        assert (datum == t_h.pad_index).sum() != 14 * (k_c_d.pos_in_bar * k_c_d.bar_max+1)
 
-        pad_in_a_row = (datum == pad_index).sum(-1)
+        pad_in_a_row = (datum == t_h.pad_index).sum(-1)
         for row_id in range(6):     
-            if pad_in_a_row[2 * row_id] == figure_size + 1:
-                datum[2 * row_id] = empty_index
-                datum[2 * row_id + 1] = empty_index
+            if pad_in_a_row[2 * row_id] == k_c_d.figure_size + 1:
+                datum[2 * row_id] = t_h.empty_index
+                datum[2 * row_id + 1] = t_h.empty_index
 
-        datum[:,pos_in_bar * bar + pos + 1:] = empty_index
+        datum[:,k_c_d.pos_in_bar * bar + pos + 1:] = t_h.empty_index
         datum[:,-1] = tempo
 
         return datum
@@ -118,18 +118,6 @@ def oct_to_rep(line):
 if __name__ == "__main__":
   
     tokens_to_ids = {} 
-    
-    ids_to_tokens = [] 
-    dict_path = sys.argv[1]
-    with open(dict_path,'r') as f:
-        tokens = f.readlines()
-        for id, token in enumerate(tokens):
-            token, freq = token.strip().split('\t')
-            tokens_to_ids[token] = id
-            ids_to_tokens.append(token)
-        pad_index = tokens_to_ids['<pad>']
-        empty_index = len(ids_to_tokens)
-        print('{} tokens in dictionary'.format(len(ids_to_tokens)))
     
     oct_path = sys.argv[2]
     binary_data_dir = sys.argv[3]

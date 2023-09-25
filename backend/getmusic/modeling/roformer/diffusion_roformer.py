@@ -2,10 +2,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from tqdm import tqdm
-from getmusic.utils.misc import instantiate_from_config
 import numpy as np
 from torch.cuda.amp import autocast
-import getmusic.utils.midi_config as mc
+from ...utils import midi_config as mc
+from ...utils.misc import instantiate_from_config
 
 eps = 1e-8
 

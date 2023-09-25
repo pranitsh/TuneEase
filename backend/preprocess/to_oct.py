@@ -5,12 +5,10 @@
 from multiprocessing import Pool
 import os
 import sys
-sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
-from getmusic.utils.midi_config import bar_max, max_notes_per_bar, beat_note_factor, pos_resolution, max_inst, max_pitch, duration_max, max_tempo, max_velocity, sample_len_max, pool_num
-from ..pipeline.encoding_helpers import ts_list, v2e, b2e
+from ..getmusic.utils.midi_config import bar_max, max_notes_per_bar, beat_note_factor, pos_resolution, max_inst, max_pitch, duration_max, max_tempo, max_velocity, sample_len_max, pool_num
+from ..pipeline.encoding_helpers import TS, v2e, b2e
 from ..pipeline.file import F
-
-
+sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
 
 data_zip = None
 # (0 Measure, 1 Pos, 2 Program, 3 Pitch, 4 Duration, 5 Velocity, 6 TimeSig, 7 Tempo)
@@ -18,6 +16,7 @@ data_zip = None
 # (Pos, Tempo)
 # Percussion: Program=128 Pitch=[128,255]
 def gen_dictionary(file_name):
+    ts = TS()
     num = 0
     with open(file_name, 'w') as f:
         for j in range(bar_max):
@@ -34,7 +33,7 @@ def gen_dictionary(file_name):
             print('<4-{}>'.format(j), num, file=f)
         for j in range(v2e(max_velocity) + 1):
             print('<5-{}>'.format(j), num, file=f)
-        for j in range(len(ts_list)):
+        for j in range(len(ts.ts_list)):
             print('<6-{}>'.format(j), num, file=f)
         for j in range(b2e(max_tempo) + 1):
             print('<7-{}>'.format(j), num, file=f)
@@ -68,8 +67,6 @@ if __name__ == '__main__':
         print('Output path {} already exists! Please delete existing files'.format(prefix))
         sys.exit(0)
     os.system('mkdir -p {}'.format(prefix))
-    
-    
     file_list = []
     for (dirpath, dirnames, filenames) in os.walk(data_path):
         for filename in filenames:
@@ -77,11 +74,9 @@ if __name__ == '__main__':
                 file_list.append(os.path.join(dirpath, filename))
     file_list.sort()
     # random.shuffle(file_list)
-
     # gen_dictionary('{}/dict.txt'.format(prefix))
     ok_cnt = 0
     all_cnt = 0
-
     total_file_cnt = len(file_list)
     file_list_split = file_list
     output_file = '{}/oct.txt'.format(prefix)
@@ -92,4 +87,3 @@ if __name__ == '__main__':
     output_file = None
     print('{}/{} ({:.2f}%) MIDI files successfully processed'.format(ok_cnt,
                                                                      all_cnt, ok_cnt / all_cnt * 100))
-    

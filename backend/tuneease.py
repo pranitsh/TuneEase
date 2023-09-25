@@ -1,10 +1,11 @@
 import os
+from click import FileError
 import music21 
 import random
 from .logger import ServerLogger
 from .pathutility import PathUtility
 from .converter import Converter
-from .getmusic.track_generation import main as music_generator
+from .track_generation import main as music_generator
 
 class TuneEase:
     """
@@ -164,7 +165,7 @@ class TuneEase:
         s.write('musicxml', filepath)
         return filepath
 
-    def generate(self, form, file = None):
+    def generate(self, input_dict = dict(), file = None, gpu= False):
         """
         Generate music based on user input or a template file.
 
@@ -181,58 +182,58 @@ class TuneEase:
             ...     'condition-lead': 'True',
             ...     'condition-bass': 'False',
             ... }
-            >>> generated_file = tuneease.generate(user_input)
+            >>> generated_file = tuneease.generate()
 
         Notes:
             - Defaults follow below: condition is what is in the input, content is what is to be outputed
-            conditional_tracks = ", ".join([
-                str(form.get("condition-lead", "False") == "True"),
-                str(form.get("condition-bass", "False") == "True"),
-                str(form.get("condition-drums", "False") == "True"),
-                str(form.get("condition-guitar", "False") == "True"),
-                str(form.get("condition-piano", "False") == "True"),
-                str(form.get("condition-strings", "False") == "True"),
-                str(True) # required
+            conditional_tracks = "".join([
+                str(int(form.get("condition-lead", False) == True)),
+                str(int(form.get("condition-bass", False) == True)),
+                str(int(form.get("condition-drums", False) == True)),
+                str(int(form.get("condition-guitar", False) == True)),
+                str(int(form.get("condition-piano", False) == True)),
+                str(int(form.get("condition-strings", False) == True)),
+                str(int(True))
             ])
-            content_tracks = ", ".join([
-                str(form.get("content-lead", "False") == "True"),
-                str(form.get("content-bass", "False") == "True"),
-                str(form.get("content-drums", "False") == "True"),
-                str(form.get("content-guitar", "False") == "True"),
-                str(form.get("content-piano", "True") == "True"),
-                str(form.get("content-strings", "False") == "True"),
-                str(False)
+            content_tracks = "".join([
+                str(int(form.get("content-lead", False) == True)),
+                str(int(form.get("content-bass", False) == True)),
+                str(int(form.get("content-drums", False) == True)),
+                str(int(form.get("content-guitar", False) == True)),
+                str(int(form.get("content-piano", True) == True)),
+                str(int(form.get("content-strings", False) == True)),
+                str(int(False))
             ])
+            seed = input_dict.get("seed", 0)
         """
-        self.logger.info("Received a generate request with {}".format(str(form)))
-        conditional_tracks = ", ".join([
-            str(form.get("condition-lead", "False") == "True"),
-            str(form.get("condition-bass", "False") == "True"),
-            str(form.get("condition-drums", "False") == "True"),
-            str(form.get("condition-guitar", "False") == "True"),
-            str(form.get("condition-piano", "False") == "True"),
-            str(form.get("condition-strings", "False") == "True"),
-            str(True)
+        self.logger.info("Received a generate request with {}".format(str(input_dict)))
+        conditional_tracks = "".join([
+            str(int(input_dict.get("condition-lead", False))),
+            str(int(input_dict.get("condition-bass", False))),
+            str(int(input_dict.get("condition-drums", False))),
+            str(int(input_dict.get("condition-guitar", False))),
+            str(int(input_dict.get("condition-piano", False))),
+            str(int(input_dict.get("condition-strings", False))),
+            str(int(True))
         ])
-        content_tracks = ", ".join([
-            str(form.get("content-lead", "False") == "True"),
-            str(form.get("content-bass", "False") == "True"),
-            str(form.get("content-drums", "False") == "True"),
-            str(form.get("content-guitar", "False") == "True"),
-            str(form.get("content-piano", "True") == "True"),
-            str(form.get("content-strings", "False") == "True"),
-            str(False)
+        content_tracks = "".join([
+            str(int(input_dict.get("content-lead", False))),
+            str(int(input_dict.get("content-bass", False))),
+            str(int(input_dict.get("content-drums", False))),
+            str(int(input_dict.get("content-guitar", False))),
+            str(int(input_dict.get("content-piano", True))),
+            str(int(input_dict.get("content-strings", True))),
+            str(int(False))
         ])
-        seed = form.get("seed", "0")
-
+        seed = input_dict.get("seed", 0)
         if file:
             assert os.path.exists(file)
             filepath = file
         else:
             self.logger.info("Performing with template file")
-            time_signature = form.get('time_signature', '4/4')
+            time_signature = input_dict.get('time_signature', '4/4')
             quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-            number_measures = int(form.get('number_measures', '2')) * int(time_signature.split('/')[0])
+            number_measures = int(input_dict.get('number_measures', '2')) * int(time_signature.split('/')[0])
             stream = music21.stream.Stream()
             time_signature = music21.meter.TimeSignature(time_signature)
             stream.append(time_signature)
@@ -249,22 +250,25 @@ class TuneEase:
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             stream.write('musicxml', filepath)
 
-        output_filepath = os.path.splitext(filepath)[0] + ".mid"
-        musicxml_file = music21.converter.parse(filepath)
-        try:
-            musicxml_file.write('midi', fp=output_filepath)
-        except Exception as e:
-            self.logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
-            raise e
-
+        if os.path.splitext(filepath)[1] == ".xml":
+            output_filepath = os.path.splitext(filepath)[0] + ".mid"
+            musicxml_file = music21.converter.parse(filepath)
+            try:
+                musicxml_file.write('midi', fp=output_filepath)
+            except Exception as e:
+                self.logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
+                raise e
+        elif os.path.splitext(filepath)[1] == ".mid":
+            output_filepath = filepath
+        else:
+            raise FileError("Only .mid or .xml accepted atm")
         cmd = [
             '--file_path', output_filepath,
             "--seed", str(seed),
             "--conditional_tracks", conditional_tracks,
             "--content_tracks", content_tracks,
         ]
-
-        save_path = os.path.splitext(music_generator.main(cmd))[0]
+        save_path = os.path.splitext(music_generator(cmd, gpu=gpu))[0]
         musicxml_file = music21.converter.parse(save_path + ".mid")
         try:
             musicxml_file.write('musicxml', fp=save_path + ".xml")
@@ -272,3 +276,7 @@ class TuneEase:
             self.logger.error("Had an error converting the generated content to xml (probably model error) - {}".format(str(e)))
             raise e
         return save_path + ".xml"
+    
+if __name__=="__main__":
+    tuneease = TuneEase()
+    print(tuneease.generate(file = r'C:\Users\ppsha\Documents\Github\muzic\getmusic\template.mid'))

@@ -1,11 +1,16 @@
 import signal
 import hashlib
 from multiprocessing import Lock, Manager
+
 lock_file = Lock()
 lock_write = Lock()
 lock_set = Lock()
-manager = Manager()
-midi_dict = manager.dict()
+
+def get_midi_dict():
+    manager = Manager()
+    midi_dict = manager.dict()
+    return midi_dict
+
 output_file = None
 
 class timeout:

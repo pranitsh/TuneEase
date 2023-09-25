@@ -1,16 +1,15 @@
 import os
 import warnings
 import torch
-from getmusic.modeling.build import build_model
-from getmusic.utils.misc import merge_opts_to_config, modify_config_for_debug
-from .pipeline.train import config
+from .getmusic.modeling.build import build_model
+from .getmusic.utils.misc import merge_opts_to_config, modify_config_for_debug
+from .pipeline.config import Config
 from getmusic.engine.logger import Logger
 from getmusic.engine.solver import Solver
 from getmusic.distributed.launch import launch
 from .pipeline.args import get_args
 from .pipeline.encoding import encoding_to_MIDI
 from .pipeline.file import F
-
 
 def main_worker(local_rank, args):
 
@@ -19,27 +18,13 @@ def main_worker(local_rank, args):
     args.global_rank = args.local_rank + args.node_rank * args.ngpus_per_node
     args.distributed = args.world_size > 1
 
-    global config
+    config = Config()
+    config = config.config
     config = merge_opts_to_config(config, args.opts)
     if args.debug:
         config = modify_config_for_debug(config)
 
     logger = Logger(args)
-
-    global tokens_to_ids
-    global ids_to_tokens
-    global empty_index
-    global pad_index
-
-    with open(config['solver']['vocab_path'],'r') as f:
-        tokens = f.readlines()
-
-        for id, token in enumerate(tokens):
-            token, freq = token.strip().split('\t')
-            tokens_to_ids[token] = id
-            ids_to_tokens.append(token)
-        pad_index = tokens_to_ids['<pad>']
-        empty_index = len(ids_to_tokens)
 
     model = build_model(config, args)
 
