@@ -112,8 +112,9 @@ class PathUtility:
                 with open(filename, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
-                            print('Writing chunk', idx)
+                            print('Writing chunk', idx, 'out of', '176947', str(idx/176947))
                             file.write(chunk)
+                            idx += 1
                 print(f'Downloaded {filename} successfully.')
             else:
                 print(f'Failed to download {file_url}. Status code: {response.status_code}')
