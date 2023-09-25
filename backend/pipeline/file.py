@@ -11,7 +11,6 @@ from .file_helpers import get_midi_dict, timeout, get_hash, lock_set, lock_write
 track_name = ['lead', 'bass', 'drum', 'guitar', 'piano', 'string']
 
 def create_pos_from_str(str_cmd, pos):
-    print(str_cmd)
     if str_cmd == '-':
         return pos
     track_cmds = str_cmd.split(';')
@@ -55,7 +54,6 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
         bar_index_offset = 0
 
         figure_size = encoding[-1][0] * k_c_d.pos_in_bar + encoding[-1][1]
-
         pad_length = 1 #(512 - figure_size % 512)
 
         figure_size += pad_length
@@ -132,13 +130,14 @@ def F(filename, file_name, conditional_tracks = None, content_tracks = None, con
                 oov += 1
 
         datum = torch.where(empty_pos, t_h.empty_index, datum)
+
         datum = torch.where(((datum != t_h.empty_index).float() * (1 - conditional_bool)).type(torch.bool), t_h.empty_index + 1, datum)
 
         # datum = datum[:,:1280]
         # conditional_bool = conditional_bool[:,:1280]
 
-        # if trunc:
-        datum = datum[:,:512]
+        # # if trunc:
+        # datum = datum[:,:512]
         conditional_bool = conditional_bool[:,:512]
 
         not_empty_pos = (torch.tensor(np.array(datum)) != t_h.empty_index).float()

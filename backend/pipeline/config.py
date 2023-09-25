@@ -75,25 +75,25 @@ class Config:
             'dataloader': {
                 'batch_size': 3, 
                 'num_workers': 28, 
-                'train_datasets': [
-                    {
-                        'target': 
-                            'backend.getmusic.data.bigdata.BigDataset', 
-                            'params': {
-                                'prefix': 'train', 
-                                'path': '/your-data-path', 
-                                'vocab_size': 11880
-                                }
-                            }
-                    ], 'validation_datasets': [
-                        {
-                            'target': 'backend.getmusic.data.bigdata.BigDataset', 
-                            'params': {
-                                'prefix': 'valid', 
-                                'path': '/your-data-path', 
-                                'vocab_size': 11880
-                                }
-                            }
-                        ]
+                # 'train_datasets': [
+                #     {
+                #         'target': 
+                #             'backend.getmusic.data.bigdata.BigDataset', 
+                #             'params': {
+                #                 'prefix': 'train', 
+                #                 'path': '/your-data-path', 
+                #                 'vocab_size': 11880
+                #                 }
+                #             }
+                #     ], 'validation_datasets': [
+                #         {
+                #             'target': 'backend.getmusic.data.bigdata.BigDataset', 
+                #             'params': {
+                #                 'prefix': 'valid', 
+                #                 'path': '/your-data-path', 
+                #                 'vocab_size': 11880
+                #                 }
+                #             }
+                #         ]
                     }
             }

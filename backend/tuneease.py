@@ -279,4 +279,4 @@ class TuneEase:
     
 if __name__=="__main__":
     tuneease = TuneEase()
-    print(tuneease.generate(file = r'C:\Users\ppsha\Documents\Github\muzic\getmusic\template.mid'))
+    print(tuneease.generate())

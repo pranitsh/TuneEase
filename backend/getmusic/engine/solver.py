@@ -96,7 +96,6 @@ class Solver(object):
             self.model.to(self.args.local_rank)
         
         self.device = self.args.local_rank
-        print('self.device ',self.device)
 
         if self.args.distributed:
             self.logger.log_info('Distributed, begin DDP the model...')
@@ -494,7 +493,6 @@ class Solver(object):
         tic = time.time()
         
         if use_ema and self.ema is not None:
-            print('use ema parameters')
             self.ema.modify_to_inference()
 
         if isinstance(self.model, torch.nn.parallel.DistributedDataParallel):

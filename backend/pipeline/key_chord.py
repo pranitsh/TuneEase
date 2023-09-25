@@ -18,7 +18,7 @@ class TokenHelper:
             for id, token in enumerate(tokens):
                 token, freq = token.strip().split('\t')
                 self.tokens_to_ids[token] = id
-                self.ids_to_tokens.append(token)
+            self.ids_to_tokens = list(self.tokens_to_ids.keys())
             self.pad_index = self.tokens_to_ids['<pad>']
             self.empty_index = len(self.ids_to_tokens)
 

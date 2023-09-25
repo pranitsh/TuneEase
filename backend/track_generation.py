@@ -67,7 +67,6 @@ def main(input_args = None, gpu = False):
     if content_name[5] == "1":
         content_track[5] = True
     x, tempo, not_empty_pos, condition_pos, pitch_shift, tpc, have_cond = F("track_generation.py", args.file_path, conditional_track, content_track, condition_inst, args.chord_from_single)
-
     if not have_cond:
         print('chord error')
         return ""

@@ -17,8 +17,6 @@ def normalize_to_c_major(filename, e):
             return histogram
 
         pitch_histogram = [i for i in e if i[2] < 128]
-        print("Is this it?")
-        print(e[0])
         if len(pitch_histogram) == 0:
             return e, True, 0
 

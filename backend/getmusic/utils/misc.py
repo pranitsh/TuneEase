@@ -14,7 +14,6 @@ def seed_everything(seed, cudnn_deterministic=False):
         seed: the integer value seed for global random state
     """
     if seed is not None:
-        print(f"Global seed set to {seed}")
         random.seed(seed)
         os.environ['PYTHONHASHSEED'] = str(seed)
         np.random.seed(seed)
@@ -126,7 +125,6 @@ def instantiate_from_config(config):
         raise KeyError("Expected key `target` to instantiate.")
     module, cls = config["target"].rsplit(".", 1)
     cls = getattr(importlib.import_module(module, package=None), cls)
-    print(cls)
     return cls(**config.get("params", dict()))
 
 def class_from_string(class_name):
