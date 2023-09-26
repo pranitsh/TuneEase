@@ -14,7 +14,7 @@ app = Flask(__name__, static_url_path='/static', static_folder=os.path.join(util
 parser = ArgumentParser()
 parser.add_argument('--museScore_path')
 args = parser.parse_args()
-app.config["museScore_path"] = args.museScore_path if args.museScore_path else util.museScore_path()
+app.config["museScore_path"] = args.museScore_path if args.museScore_path else util.musescore_path()
 CORS(app)
 
 @app.route('/')

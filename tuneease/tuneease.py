@@ -30,7 +30,7 @@ class TuneEase:
         >>> output_path = tuneease.convert(input_path)
     """
     util = PathUtility()
-    museScore_path = util.museScore_path()
+    museScore_path = util.musescore_path()
     logger = ServerLogger("tuneease.log").get()
     def __init__(self, museScore_path = ""):
         if museScore_path:

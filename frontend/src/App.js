@@ -184,6 +184,22 @@ class App extends Component {
     }
   }
   
+  handleDownload = () => {
+    const { musicxml } = this.state;
+    if (musicxml) {
+      const blob = new Blob([musicxml], { type: 'application/xml' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'result.xml'; // You can specify the filename here
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert('No musicXML content available to download.');
+    }
+  };
+
   handleGenerate = async (event) => {
     event.preventDefault();
     const { inputStrings, boolValues } = this.state;
@@ -244,6 +260,7 @@ class App extends Component {
           <button type="submit">Submit</button>
           <button type="button" onClick={this.handleConvert.bind(this)}>Convert</button>
           <button type="button" onClick={this.randomMeasures.bind(this)}>Random</button>
+          <button type="button" onClick={this.handleDownload}>Download MusicXML</button>
         </form>
         <form onSubmit={this.preventChange.bind(this)}>
           Enter Measure Range

@@ -7,7 +7,7 @@ from ..converter import Converter
 @pytest.fixture
 def get_tuneease():
     path_util = PathUtility()
-    museScore_path = path_util.museScore_path()
+    museScore_path = path_util.musescore_path()
     return TuneEase(museScore_path=museScore_path)
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def get_music_file():
 @pytest.fixture
 def get_converter():
     path_util = PathUtility()
-    museScore_path = path_util.museScore_path()
+    museScore_path = path_util.musescore_path()
     return Converter(log_file="server.log", museScore_path=museScore_path)
 
 def test_tuneease_init(get_tuneease):
