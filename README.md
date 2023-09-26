@@ -148,7 +148,7 @@ Here are some tips to enhance your experience with GETMusic:
 We appreciate to the following authors who make their code available:
 ## Reference
 
-I appreciate the original work from the first citation below and the works of the others.
+I utilize the original work from the first citation below and appreciate the other works below.
 
 * [1] ***GETMusic**: Generating Any Music Tracks with a Unified Representation and Diffusion Framework*, Ang Lv, Xu Tan, Peiling Lu, Wei Ye, Shikun Zhang, Jiang Bian, Rui Yan, arXiv 2023.
 * [2] ***MusicBERT**: Symbolic Music Understanding with Large-Scale Pre-Training*, Mingliang Zeng, Xu Tan, Rui Wang, Zeqian Ju, Tao Qin, Tie-Yan Liu, **ACL 2021**.  
