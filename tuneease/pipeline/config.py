@@ -6,17 +6,17 @@ class Config:
     def __init__(self) -> None:
         self.config = {
             'model': {
-                'target': 'backend.getmusic.modeling.models.dfm.DFM', 
+                'target': 'tuneease.getmusic.modeling.models.dfm.DFM', 
                 'params': {
                     'diffusion_config': {
-                        'target': 'backend.getmusic.modeling.roformer.diffusion_roformer.DiffusionRFM',
+                        'target': 'tuneease.getmusic.modeling.roformer.diffusion_roformer.DiffusionRFM',
                         'params': {
                             'diffusion_step': 100, 
                             'alpha_init_type': 'alpha1', 
                             'auxiliary_loss_weight': 0.001, 
                             'adaptive_auxiliary_loss': True, 
                             'roformer_config': {
-                                'target': 'backend.getmusic.modeling.roformer.roformer_utils.DiffusionRoformerModel', 
+                                'target': 'tuneease.getmusic.modeling.roformer.roformer_utils.DiffusionRoformerModel', 
                                 'params': {
                                     'vocab_size': 11880, 
                                     'cond_weight': 0.5
@@ -43,7 +43,7 @@ class Config:
                     }, 
                 'clip_grad_norm': {
                     'target': 
-                        'backend.getmusic.engine.clip_grad_norm.ClipGradNorm', 
+                        'tuneease.getmusic.engine.clip_grad_norm.ClipGradNorm', 
                         'params': {
                             'start_iteration': 0, 
                             'end_iteration': 5000, 
@@ -62,7 +62,7 @@ class Config:
                             }, 
                         'scheduler': {
                             'step_iteration': 1, 
-                            'target': 'backend.getmusic.engine.lr_scheduler.LinearDecayLRWithWarmup', 
+                            'target': 'tuneease.getmusic.engine.lr_scheduler.LinearDecayLRWithWarmup', 
                             'params': {
                                 'min_lr': 1e-06, 
                                 'warmup_lr': 0.0001,
@@ -78,7 +78,7 @@ class Config:
                 # 'train_datasets': [
                 #     {
                 #         'target': 
-                #             'backend.getmusic.data.bigdata.BigDataset', 
+                #             'tuneease.getmusic.data.bigdata.BigDataset', 
                 #             'params': {
                 #                 'prefix': 'train', 
                 #                 'path': '/your-data-path', 
@@ -87,7 +87,7 @@ class Config:
                 #             }
                 #     ], 'validation_datasets': [
                 #         {
-                #             'target': 'backend.getmusic.data.bigdata.BigDataset', 
+                #             'target': 'tuneease.getmusic.data.bigdata.BigDataset', 
                 #             'params': {
                 #                 'prefix': 'valid', 
                 #                 'path': '/your-data-path', 

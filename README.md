@@ -88,23 +88,24 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
 
 If you cloned the repo:
 ```sh
-python -m backend.tuneease # generates a file and prints the output
-python -m backend.server # starts the server for you to use the app through the port that is printed
+python -m tuneease.tuneease # generates a file and prints the location to the file
+python -m tuneease.server # starts the server for you to use the app through the port that is printed
 ``` 
 If you installed through pip:
 ```sh
-tuneease # generates something and prints the location of the generated file
-server # starts the server and prints the port to go to for the website
+tuneease-generate # generates something and prints the location of the generated file
+tuneease # starts the server and prints the port to go to for the website
 ```
 Attempts are made to find your MuseScore path automatically for the website. **Optionally, include your MuseScore path with the flag** 
 ```sh
-server --museScore_path <path>
+tuneease --museScore_path <path>
+python -m tuneease.server --museScore_path <path>
 ```
 Normally, you can access the server at http://localhost:8080, or you can follow whatever port flask tells you to go to.
 
 You can use this as an import statement and follow the tuneease.py __name__ == "__main__" block. Try it out!
 ```python
-from backend.tuneease import TuneEase
+from tuneease.tuneease import TuneEase
 tuneease = TuneEase()
 print(tuneease.generate()) # Prints the resulting file path of the AI music
 ```

@@ -6,6 +6,8 @@ checkpoint.pth
 /temp
 server.log
 .benchmarks/
+***/*.log
+*.log
 
 ### Template for Python
 

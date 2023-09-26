@@ -1,5 +1,4 @@
 For the documentation, website, server, pypi packaging (especially environment setup), docker setup, and getmusic architectural changes:
-This includes the entire /frontend, at least the files in /backend disregarding /backend/getmusic.
 MIT License
 
 Copyright (c) 2023 Pranit Shah
@@ -22,8 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
-**For the model, original code, and anything else not included above:**
+**For the model checkpoint.pth, original code, and anything else not included above:**
 MIT License
 
 Copyright (c) Microsoft Corporation.

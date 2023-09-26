@@ -5,7 +5,7 @@ def main():
     setup(
         name='tuneease',
         packages=find_packages(exclude=['tests*', 'test_*', '*tests*']),
-        version='0.0.1',
+        version='1.0.0',
         license='MIT',
         description='Generate music with AI',
         author='Pranit Shah',
@@ -88,8 +88,8 @@ def main():
         ],
         entry_points={
             'console_scripts': [
-                'tuneease=backend.__main__:main'
-                'tuneease-generate=backend.tuneease:tuneease'
+                'tuneease=tuneease.__main__:main',
+                'tuneease-generate=tuneease.tuneease:tuneease'
             ]
         },
     )

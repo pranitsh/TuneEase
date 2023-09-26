@@ -23,7 +23,8 @@ class PathUtility:
     
     def __init__(self):
         self.current_file_path = os.path.abspath(__file__)
-        self.checkpoint()
+        self.checkpoint_path()
+        self.museScore_path()
 
     def project_directory(self):
         """
@@ -77,12 +78,12 @@ class PathUtility:
             directories += [
                 os.path.join(self.project_directory(), 'temp')
             ]
-        if sys.platform == 'darwin':
+        elif sys.platform == 'darwin':
             directories += [
                 '/Applications/MuseScore 4.app/Contents/Resources/bin',
                 os.path.join(os.getenv('HOME'), 'bin')
             ]
-        if sys.platform == 'win32':
+        elif sys.platform == 'win32':
             directories += [
                 r'C:\Program Files\MuseScore 4\bin',
                 r'C:\Program Files (x86)\MuseScore 4\bin'
@@ -91,27 +92,39 @@ class PathUtility:
             if museScore_window_executable:
                 path = os.path.join(directory, museScore_window_executable)
                 if os.path.exists(path):
+                    print(f'Found museScore {path}')
                     return path
             if mscore_mac_executable:
                 path = os.path.join(directory, mscore_mac_executable)
                 if os.path.exists(path):
+                    print(f'Found museScore {path}')
                     return path
             if museScore_linux_executable:
                 path = os.path.join(directory, museScore_linux_executable)
                 if os.path.exists(path):
+                    print(f'Found museScore {path}')
                     return path
-        raise FileNotFoundError('MuseScore installation not found. Use the flag --museScore_path')
+        print("Looking for a MuseScore installation. If on Ubuntu, download the below link and place it in the below location")
+        print("https://cdn.jsdelivr.net/musescore/v4.1.1/MuseScore-4.1.1.232071203-x86_64.AppImage")
+        print(r"C:\Users\ppsha\Documents\Github\TuneEase\temp\MuseScore.AppImage")
+        print("On Windows and macOS, install MuseScore through the website: [https://musescore.org/en](https://musescore.org/en).")
+        print("For Windows, the attempts made to find it automatically from common locations are tested and working.")
+        print("For macOS, the attempts have not been tested but are implemented. Please send an issue to change this message if it works on macOS.")
+        raise FileNotFoundError('MuseScore installation not found. If necessary, use the flag --museScore_path <museScore_path>')
 
-    def checkpoint(self):
+    def checkpoint_path(self):
         if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")):
             def download_progress_bar(blocknum, blocksize, totalsize):
                 downloaded = blocknum * blocksize
                 percent_complete = (downloaded / totalsize) * 100
-                print(f'Downloaded {percent_complete:.2f}%', end='\r')
+                print(f'Downloaded {percent_complete:.2f}% from {totalsize/1073741824}', end='\r')
             print("If this is downloading too slowly, you should use your browser with the below link:")
             file_url = 'https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4"' # Do keep the '"' at the end
             print(file_url, "\nThen, move it this spot:")
             filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")
             print(filename)
             urllib.request.urlretrieve(file_url, filename, reporthook=download_progress_bar)
-            print(f'Downloaded {filename} successfully.')
+            print(f'Downloaded {filename}.')
+        else:
+            print(f'Found {os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")}.')
+            return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")
