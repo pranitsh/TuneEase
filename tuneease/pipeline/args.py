@@ -48,7 +48,7 @@ def get_args(input_args):
         ('--no_ema', bool, True, "I'm not sure what this does. Send a pull request please!"),
         ('--no_load_optimizer_and_scheduler', bool, True, "I'm not sure what this does. Send a pull request please!"),
         ('--no_load_others', bool, True, "I'm not sure what this does. Send a pull request please!"),
-        ('--training_model', bool, False, "If you are training the model, this changes the output directory to 'OUTPUT' After the latest update to getmusic. I'm not sure this is relevant."),
+        ('--training_model', bool, False, "If you are training the model, this changes the output directory to 'OUTPUT.'"),
     ]
     for arg, arg_type, default_val, help in common_args:
         parser.add_argument(arg, type=arg_type, default=default_val, help=help)

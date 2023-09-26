@@ -5,7 +5,7 @@ Welcome to Tune Ease! This project allows for generating music with AI, intuitiv
 ## Requirements
 
 - You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb RAM is recommended.
-- 6-7 gb of disk space, depending on the operating system.
+- 4 gb of disk space (option 1), 16 gb or more of disk space (option 2), 6-7 gb of disk space (option 3).
 
 ## Installing
 

@@ -3,9 +3,9 @@ from flask import Flask, request, send_file, send_from_directory
 from flask_cors import CORS
 import music21 
 import random
-from logger import ServerLogger
-from pathutility import PathUtility
-from converter import Converter
+from .logger import ServerLogger
+from .pathutility import PathUtility
+from .converter import Converter
 from .track_generation import main as music_generator
 from argparse import ArgumentParser
 
@@ -156,24 +156,25 @@ def random_score():
 
 @app.route('/generate', methods=['POST', 'GET'])
 def generate():
+    """Do note the lowercase in the boolean values!"""
     logger = ServerLogger("server.log").get()
     logger.info("Received a /generate request with " + str(request.form))
     conditional_tracks = "".join([
-        str(int(request.form.get("condition-lead", "False") == "True")),
-        str(int(request.form.get("condition-bass", "False") == "True")),
-        str(int(request.form.get("condition-drums", "False") == "True")),
-        str(int(request.form.get("condition-guitar", "False") == "True")),
-        str(int(request.form.get("condition-piano", "False") == "True")),
-        str(int(request.form.get("condition-strings", "False") == "True")), 
+        str(int(request.form.get("condition-lead", "false") == "true")),
+        str(int(request.form.get("condition-bass", "false") == "true")),
+        str(int(request.form.get("condition-drums", "false") == "true")),
+        str(int(request.form.get("condition-guitar", "false") == "true")),
+        str(int(request.form.get("condition-piano", "false") == "true")),
+        str(int(request.form.get("condition-strings", "false") == "true")), 
         str(int(True))
     ])
     content_tracks = "".join([
-        str(int(request.form.get("content-lead", "False") == "True")),
-        str(int(request.form.get("content-bass", "False") == "True")),
-        str(int(request.form.get("content-drums", "False") == "True")),
-        str(int(request.form.get("content-guitar", "False") == "True")),
-        str(int(request.form.get("content-piano", "True") == "True")),
-        str(int(request.form.get("content-strings", "False") == "True")), 
+        str(int(request.form.get("content-lead", "false") == "true")),
+        str(int(request.form.get("content-bass", "false") == "true")),
+        str(int(request.form.get("content-drums", "false") == "true")),
+        str(int(request.form.get("content-guitar", "false") == "true")),
+        str(int(request.form.get("content-piano", "true") == "true")),
+        str(int(request.form.get("content-strings", "false") == "true")), 
         str(int(False))
     ])
     seed = request.form.get("seed", "0")
@@ -191,39 +192,33 @@ def generate():
         logger.info("Performing with template file")
         time_signature = request.form.get('time_signature', '4/4')
         quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-        number_measures = int(request.form.get('number_measures', '2')) * int(time_signature.split('/')[0])
-        s =  music21.stream.Stream()
-        ts = music21.meter.TimeSignature(time_signature)
-        s.append(ts)
-        md = music21.metadata.Metadata()
-        md.title = 'Random'
-        md.composer = 'MuseTune'
-        s.insert(0, md)
-        notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
+        number_measures = int(request.form.get('number_measures', '10')) * int(time_signature.split('/')[0])
+        score =  music21.stream.Stream()
+        time_signature = music21.meter.TimeSignature(time_signature)
+        score.append(time_signature)
+        metadata = music21.metadata.Metadata()
+        metadata.title = 'Random'
+        metadata.composer = 'MuseTune'
+        score.insert(0, metadata)
+        note_names = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
         for _ in range(number_measures):
-            note_name = random.choice(notes)
-            n = music21.note.Note(note_name, quarterLength=quarter_length)
-            s.append(n)
+            note_name = random.choice(note_names)
+            note = music21.note.Note(note_name, quarterLength=quarter_length)
+            score.append(note)
         util = PathUtility()
-        filepath = os.path.join(util.project_directory(), 'temp', "template.xml")
+        filepath = os.path.join(util.project_directory(), 'temp', "template.mid")
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        s.write('musicxml', filepath)
-
+        score.write('midi', filepath)
     if os.path.splitext(filepath)[1] == ".xml":
         output_filepath = os.path.splitext(filepath)[0] + ".mid"
         musicxml_file = music21.converter.parse(filepath)
         try:
             musicxml_file.write('midi', fp=output_filepath)
-        except Exception as e:
-            logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
-            raise e
+        except Exception as exception:
+            logger.error("Had an error converting to midi with {} - {}".format(filepath, str(exception)))
+            raise exception
     elif os.path.splitext(filepath)[1] == ".mid":
         output_filepath = filepath
-    try:
-        musicxml_file.write('midi', fp=output_filepath)
-    except Exception as e:
-        logger.error("Had an error converting to midi with " + filepath + " " + str(e))
-        return str(e), 500
     cmd = [
         '--file_path', output_filepath,
         "--seed", str(seed),

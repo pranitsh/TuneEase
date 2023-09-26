@@ -1,9 +1,10 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
+from tuneease.pathutility import PathUtility
 
 def main():
     setup(
         name='tuneease',
-        packages=['backend'],
+        packages=find_packages(exclude=['tests*', 'test_*', '*tests*']),
         version='0.0.1',
         license='MIT',
         description='Generate music with AI',
@@ -87,11 +88,12 @@ def main():
         ],
         entry_points={
             'console_scripts': [
-                'server = backend.server:run_app'
-                'tuneease = backend.tuneease:tuneease'
+                'tuneease=backend.__main__:main'
+                'tuneease-generate=backend.tuneease:tuneease'
             ]
         },
     )
 
 if __name__ == "__main__":
     main()
+    PathUtility()
