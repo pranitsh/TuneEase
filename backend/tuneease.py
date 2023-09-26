@@ -273,10 +273,13 @@ class TuneEase:
         try:
             musicxml_file.write('musicxml', fp=save_path + ".xml")
         except Exception as e:
-            self.logger.error("Had an error converting the generated content to xml (probably model error) - {}".format(str(e)))
+            self.logger.error("Had an error converting the generated content to xml (probably some error with input file) - {}".format(str(e)))
             raise e
         return save_path + ".xml"
+
+def tuneease():
+    tuneease = TuneEase()
+    print(tuneease.generate())    
     
 if __name__=="__main__":
-    tuneease = TuneEase()
-    print(tuneease.generate())
+    tuneease()

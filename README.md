@@ -1,6 +1,6 @@
 # Tune Ease
 
-Welcome to Tune Ease! This project allows for generating music with AI, converting music to different file types, interpreting music, and more.
+Welcome to Tune Ease! This project allows for generating music with AI, intuitively use the project through a website, automatically build and install a large music model (lmm?), and more.
 
 ## Requirements
 
@@ -8,37 +8,42 @@ Welcome to Tune Ease! This project allows for generating music with AI, converti
 - 6-7 gb of disk space, depending on the operating system.
 
 ## Installing
-Listed by the number of times I tried it. (Way too many times!)
 
 ### Option 1:
-If you cloned it, you can do:
-`pip install -e .`
-If you have yet to, you can do:
-`pip install -e git+https://github.com/Pshah2023/TuneEase.git@main#egg=TuneEase --upgrade`
-
-Maybe in the future, you'll be able to `pip install tuneease`. I'm going to ask the authors first.
+**Do not run this without a virtual environment!**
+1. Create a virtual environment using Python 3:
+   ```sh
+   python3 -m venv venv
+   ```
+2. Activate the virtual environment:
+   - On macOS/Linux: `source venv/bin/activate`
+   - On Windows: `venv\Scripts\activate`
+3. You can then perform the installation process: 
+   ```sh
+   # If you cloned it, you can run this from the project directory:
+   pip install -e .
+   # If you do not want to clone it, you can do:
+   pip install -e git+https://github.com/Pshah2023/TuneEase.git@main#egg=tuneease --upgrade
+   ```
 
 ### Option 2: Using Docker
 1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: https://www.docker.com/get-started
-2. Clone this repository to your local machine.
-3. Open a terminal and navigate to the project directory.
-4. Build the Docker image using the following command:
+2. Clone this repository to your local machine and navigate to the project directory in a terminal.
+3. Build the Docker image using the following command:
    ```sh
    docker compose up -d
    ```
    This will map port 8080 from the container to port 8080 on your host machine.
-6. Access the server by opening a web browser and visiting http://localhost:8080
+4. Access the server by opening a web browser and visiting http://localhost:8080
 
-### Option 3: Using a Virtual Environment
-- This setup has been developed on Windows and WSL. Most Ubuntu, online coding environments, and other linux environments will be supported with this method.
-- MacOS is supportable, but I won't be able to do that because I don't have access to that development environment. If you have some time, add the file paths for museScore and run the test cases.
+### Option 3: Codebase Sharing
 
 1. Clone this repository to your local machine and navigate to the project directory in your terminal.
 2. Install the model checkpoint with the below:
    ```sh
-   wget https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth -O backend/getmusic/checkpoint.pth -4
+   wget https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4" -O checkpoint.pth
    ```
-   The above is the command if necessary. Using your browser to download this link is faster (at least on Windows) and has a better GUI too. **You must place it at backend/getmusic/checkpoint.pth**
+   Preferably, use your browser to download this link, as it is both faster and more convenient. **You must place it at <project_directory>/checkpoint.pth**
 3. Create a virtual environment using Python 3:
    ```sh
    python3 -m venv venv
@@ -55,28 +60,12 @@ Maybe in the future, you'll be able to `pip install tuneease`. I'm going to ask 
    mkdir temp
    cd temp
    wget https://cdn.jsdelivr.net/musescore/v4.1.1/MuseScore-4.1.1.232071203-x86_64.AppImage -O "MuseScore.AppImage"
-   sudo chmod +x 'Muse
+   sudo chmod +x ./MuseScore.AppImage
    sudo apt install libfuse2 fuse3 libgl1-mesa-glx
    sudo apt-get install qtwayland5 jackd qjackctl
    ./MuseScore.AppImage
    ```
    On Windows and macOS, install MuseScore through the website: [https://musescore.org/en](https://musescore.org/en).
-7. Build the website: (may not be necessary)
-   ```sh
-   cd frontend
-   npm install
-   npm run build
-   ```
-8. Run the Python server script:
-   ```sh
-   cd backend
-   python server.py
-   ```
-   **Optionally, include your MuseScore path with the flag**
-   ```sh
-   python server.py --museScore_path <path>
-   ```
-9.  Access the server by opening a web browser and visiting http://localhost:8080 or wherever port flask tells you to go to in the above command.
 
 Remember to deactivate the virtual environment when you're done:
 ```sh
@@ -93,27 +82,34 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
    2. Created a folder named pipeline that contains code that was previously duplicated many times. (Quite painful...)
    3. Improved the Pylint score from 1.25 to 2.46
 3. Changed hierarchy and propagated changes.
-4. Packaged this into a repo.
+4. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to an automatic install process offered here.
 
 # Usage
 
-Want to quickly generate something?
+If you cloned the repo:
 ```sh
-python -m backend.tuneease
+python -m backend.tuneease # generates a file and prints the output
+python -m backend.server # starts the server for you to use the app through the port that is printed
 ``` 
-If you installed through pip
+If you installed through pip:
 ```sh
-tuneease
+tuneease # generates something and prints the location of the generated file
+server # starts the server and prints the port to go to for the website
 ```
+Attempts are made to find your MuseScore path automatically for the website. **Optionally, include your MuseScore path with the flag** 
+```sh
+server --museScore_path <path>
+```
+Normally, you can access the server at http://localhost:8080, or you can follow whatever port flask tells you to go to.
 
 You can use this as an import statement and follow the tuneease.py __name__ == "__main__" block. Try it out!
 ```python
 from backend.tuneease import TuneEase
 tuneease = TuneEase()
-print(tuneease.generate()) # Prints the resulting file path
+print(tuneease.generate()) # Prints the resulting file path of the AI music
 ```
 
-There is documentation (fortunately) that I wrote to help you along the way. Just use help and you'll see it. If you don't, it's not part of the web app I created.
+There is documentation that I wrote to help you along the way. Just use help(tunease) and you'll see it. If you don't see a specific item documented, it's not part of the web app I created. I'll slowly document the rest of the project later.
 
 # From the previous getmusic readme
 ### Usage Tips
@@ -145,10 +141,7 @@ Here are some tips to enhance your experience with GETMusic:
 
 ## References
 
-We appreciate to the following authors who make their code available:
-## Reference
-
-I utilize the original work from the first citation below and appreciate the other works below.
+I utilized the original work from the first citation below, and I appreciate the other works below.
 
 * [1] ***GETMusic**: Generating Any Music Tracks with a Unified Representation and Diffusion Framework*, Ang Lv, Xu Tan, Peiling Lu, Wei Ye, Shikun Zhang, Jiang Bian, Rui Yan, arXiv 2023.
 * [2] ***MusicBERT**: Symbolic Music Understanding with Large-Scale Pre-Training*, Mingliang Zeng, Xu Tan, Rui Wang, Zeqian Ju, Tao Qin, Tie-Yan Liu, **ACL 2021**.  

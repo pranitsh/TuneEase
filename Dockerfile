@@ -15,7 +15,7 @@ RUN flatpak install -y flathub org.musescore.MuseScore
 
 RUN flatpak install -y flathub org.musescore.MuseScore
 
-RUN wget https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth
+RUN wget https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4"
 
 # Expose a port from the container to the host
 EXPOSE 8080

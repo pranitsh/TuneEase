@@ -1,2 +1,3 @@
 include backend/getmusic/utils/key_profile.pickle
 include backend/getmusic/utils/dict.txt
+graft frontend/build

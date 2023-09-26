@@ -158,23 +158,23 @@ def random_score():
 def generate():
     logger = ServerLogger("server.log").get()
     logger.info("Received a /generate request with " + str(request.form))
-    conditional_tracks = ", ".join([
-        str(request.form.get("condition-lead", "False") == "True"),
-        str(request.form.get("condition-bass", "False") == "True"),
-        str(request.form.get("condition-drums", "False") == "True"),
-        str(request.form.get("condition-guitar", "False") == "True"),
-        str(request.form.get("condition-piano", "False") == "True"),
-        str(request.form.get("condition-strings", "False") == "True"), 
-        str(True)
+    conditional_tracks = "".join([
+        str(int(request.form.get("condition-lead", "False") == "True")),
+        str(int(request.form.get("condition-bass", "False") == "True")),
+        str(int(request.form.get("condition-drums", "False") == "True")),
+        str(int(request.form.get("condition-guitar", "False") == "True")),
+        str(int(request.form.get("condition-piano", "False") == "True")),
+        str(int(request.form.get("condition-strings", "False") == "True")), 
+        str(int(True))
     ])
-    content_tracks = ", ".join([
-        str(request.form.get("content-lead", "False") == "True"),
-        str(request.form.get("content-bass", "False") == "True"),
-        str(request.form.get("content-drums", "False") == "True"),
-        str(request.form.get("content-guitar", "False") == "True"),
-        str(request.form.get("content-piano", "True") == "True"),
-        str(request.form.get("content-strings", "False") == "True"), 
-        str(False)
+    content_tracks = "".join([
+        str(int(request.form.get("content-lead", "False") == "True")),
+        str(int(request.form.get("content-bass", "False") == "True")),
+        str(int(request.form.get("content-drums", "False") == "True")),
+        str(int(request.form.get("content-guitar", "False") == "True")),
+        str(int(request.form.get("content-piano", "True") == "True")),
+        str(int(request.form.get("content-strings", "False") == "True")), 
+        str(int(False))
     ])
     seed = request.form.get("seed", "0")
 
@@ -182,8 +182,7 @@ def generate():
         logger.info("Performing with input file")
         file = request.files['file']
         assert file.filename != '', "File is empty"
-        assert os.path.splitext(file.filename)[1] == ".xml", "File is not .xml"
-
+        assert os.path.splitext(file.filename)[1] == ".xml" or os.path.splitext(file.filename)[1] == ".mid", "File is not .xml or .mid"
         util = PathUtility()
         filepath = os.path.join(util.project_directory(), 'temp', file.filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -210,29 +209,38 @@ def generate():
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         s.write('musicxml', filepath)
 
-    output_filepath = os.path.splitext(filepath)[0] + ".mid"
-    musicxml_file = music21.converter.parse(filepath)
+    if os.path.splitext(filepath)[1] == ".xml":
+        output_filepath = os.path.splitext(filepath)[0] + ".mid"
+        musicxml_file = music21.converter.parse(filepath)
+        try:
+            musicxml_file.write('midi', fp=output_filepath)
+        except Exception as e:
+            logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
+            raise e
+    elif os.path.splitext(filepath)[1] == ".mid":
+        output_filepath = filepath
     try:
         musicxml_file.write('midi', fp=output_filepath)
     except Exception as e:
         logger.error("Had an error converting to midi with " + filepath + " " + str(e))
         return str(e), 500
-
     cmd = [
         '--file_path', output_filepath,
         "--seed", str(seed),
         "--conditional_tracks", conditional_tracks,
         "--content_tracks", content_tracks,       
     ]
-
     save_path = os.path.splitext(music_generator(cmd))[0]
     musicxml_file = music21.converter.parse(save_path + ".mid")
     try:
         musicxml_file.write('musicxml', fp=save_path + ".xml")
     except Exception as E:
-        logger.error("Had an error converting the generated content to xml (probably model error)" + str(E))
+        logger.error("Had an error converting the generated content to xml (likely some error with the input file)" + str(E))
         return 500
     return send_file(save_path + ".xml", as_attachment=True, download_name=save_path + ".xml")
 
-if __name__ == '__main__':
+def run_app():
     app.run(host='0.0.0.0', port=8080, debug=True)
+
+if __name__ == '__main__':
+    run_app()

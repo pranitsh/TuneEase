@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-import requests
+import urllib
 
 class PathUtility:
     """
@@ -104,17 +104,14 @@ class PathUtility:
 
     def checkpoint(self):
         if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")):
+            def download_progress_bar(blocknum, blocksize, totalsize):
+                downloaded = blocknum * blocksize
+                percent_complete = (downloaded / totalsize) * 100
+                print(f'Downloaded {percent_complete:.2f}%', end='\r')
+            print("If this is downloading too slowly, you should use your browser with the below link:")
+            file_url = 'https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4"' # Do keep the '"' at the end
+            print(file_url, "\nThen, move it this spot:")
             filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoint.pth")
-            file_url = 'https://github.com/Pshah2023/TuneEase/releases/download/0.1.0/checkpoint.pth'
-            response = requests.get(file_url, stream=True)
-            idx = 0
-            if response.status_code == 200:
-                with open(filename, 'wb') as file:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            print('Writing chunk', idx, 'out of', '176947', str(idx/176947))
-                            file.write(chunk)
-                            idx += 1
-                print(f'Downloaded {filename} successfully.')
-            else:
-                print(f'Failed to download {file_url}. Status code: {response.status_code}')
+            print(filename)
+            urllib.request.urlretrieve(file_url, filename, reporthook=download_progress_bar)
+            print(f'Downloaded {filename} successfully.')

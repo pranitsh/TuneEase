@@ -10,7 +10,7 @@ def main():
         author='Pranit Shah',
         author_email='ppshah2023@gmail.com',
         url='https://www.pranitshah.cyou/musetune',
-        download_url='https://github.com/Pshah2023/TuneEase/releases/tag/0.1.0',
+        download_url='https://github.com/Pshah2023/TuneEase/',
         keywords=['music', 'AI', 'getmusic'],
         install_requires=[
             'torch==2.0.1',
@@ -87,10 +87,10 @@ def main():
         ],
         entry_points={
             'console_scripts': [
+                'server = backend.server:run_app'
                 'tuneease = backend.tuneease:tuneease'
             ]
         },
-
     )
 
 if __name__ == "__main__":
