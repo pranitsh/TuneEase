@@ -1,6 +1,6 @@
 # Tune Ease
 
-Welcome to Tune Ease! This project allows for generating music with AI, intuitively use the project through a website, automatically build and install a large music model (lmm?), and more.
+Welcome to Tune Ease! This project provides intuitive website control and automatic package installation means for generating music with AI with the [GETMusic Framework](https://ai-muzic.github.io/getmusic/). The package provides a number of common music processing tools, architectural changes to the getmusic project, documentation and testing (including benchmarks), and more.
 
 ## Requirements
 
