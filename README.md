@@ -4,7 +4,7 @@ Welcome to Tune Ease! This project allows for generating music with AI, converti
 
 ## Requirements
 
-- You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb is recommended.
+- You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb RAM is recommended.
 - 6-7 gb of disk space, depending on the operating system.
 
 ## Installing
@@ -116,7 +116,7 @@ print(tuneease.generate()) # Prints the resulting file path
 There is documentation (fortunately) that I wrote to help you along the way. Just use help and you'll see it. If you don't, it's not part of the web app I created.
 
 # From the previous getmusic readme
-## Usage Tips
+### Usage Tips
 
 Here are some tips to enhance your experience with GETMusic:
 
@@ -143,12 +143,14 @@ Here are some tips to enhance your experience with GETMusic:
    -   Change Tracks: In some cases, even if your input music is of the pop genre, the generated results may still be unsatisfactory. One possible reason is that: for example, if you want to generate tracks based on your input guitar, and the guitar pattern in your input is more similar to the lead track in the training data, the domain gap appears. In this case, modifying the MIDI program ID of your guitar track to serve as a lead track can help reduce the track-wise domain gap.
    -   Tune the Input: You can try using a different random seed, modify the code to truncate the music length, or add [EMPTY]s in the end of the input to regenerate a result with variations.
 
-### 5. Acknowledgement
+## References
 
 We appreciate to the following authors who make their code available:
+## Reference
 
-1. [VQ-diffusion](https://github.com/microsoft/VQ-Diffusion/tree/e227b2643f2842d562706534cb1c46301e116b1f)
+I appreciate the original work from the first citation below and the works of the others.
 
-2. [MusicBert](https://github.com/microsoft/muzic/tree/main/musicbert)
-
-3. [Roformer (Su et al.) and transformers](https://github.com/huggingface/transformers/blob/v4.28.1/src/transformers/models/roformer/modeling_roformer.py)
+* [1] ***GETMusic**: Generating Any Music Tracks with a Unified Representation and Diffusion Framework*, Ang Lv, Xu Tan, Peiling Lu, Wei Ye, Shikun Zhang, Jiang Bian, Rui Yan, arXiv 2023.
+* [2] ***MusicBERT**: Symbolic Music Understanding with Large-Scale Pre-Training*, Mingliang Zeng, Xu Tan, Rui Wang, Zeqian Ju, Tao Qin, Tie-Yan Liu, **ACL 2021**.  
+* [Roformer (Su et al.) and transformers](https://github.com/huggingface/transformers/blob/v4.28.1/src/transformers/models/roformer/modeling_roformer.py)
+* [VQ-diffusion](https://github.com/microsoft/VQ-Diffusion/tree/e227b2643f2842d562706534cb1c46301e116b1f)
