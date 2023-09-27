@@ -64,6 +64,22 @@ class PathUtility:
         """
         return os.path.dirname(os.path.dirname(self.current_file_path))
 
+    def tuneease_dir(self):
+        """
+        Get the path to the python code directory.
+
+        Args:
+            None
+
+        Returns:
+            str: The path to the python code directory.
+
+        Example:
+            >>> path_util = PathUtility()
+            >>> tuneease_dir = path_util.tuneease_dir()
+        """
+        return os.path.dirname(self.current_file_path)
+
     def musescore_path(self, printsuccess = False):
         """
         Locate and return the path to the MuseScore executable.

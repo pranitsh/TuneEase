@@ -10,7 +10,7 @@ from .track_generation import main as music_generator
 
 util = PathUtility()
 logger = ServerLogger().get()
-static_path = os.path.join(util.project_directory(), 'frontend', 'build', 'static')
+static_path = os.path.join(util.tuneease_dir(), 'build', 'static')
 logger.debug(static_path)
 app = Flask(__name__, static_url_path='/static', static_folder=static_path)
 app.config["museScore_path"] = util.musescore_path()
@@ -19,13 +19,13 @@ CORS(app)
 @app.route('/')
 def index():
     util = PathUtility()
-    build_dir = os.path.join(util.project_directory(), 'frontend', 'build')
+    build_dir = os.path.join(util.tuneease_dir(), 'build')
     return send_from_directory(build_dir, 'index.html')
 
 @app.route('/<path:filename>')
 def serve_file(filename):
     util = PathUtility()
-    build_dir = os.path.join(util.project_directory(), 'frontend', 'build')
+    build_dir = os.path.join(util.tuneease_dir(), 'build')
     logger = ServerLogger("tuneease.log").get()
     logger.info("Received a request " + build_dir)
     return send_from_directory(build_dir, filename)
