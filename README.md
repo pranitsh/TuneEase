@@ -27,7 +27,7 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
    pip install -e .
    ```
 
-You can do, but you won't have access to the website yet.
+You can do the below, but you won't have access to the website yet.
 ```sh
 pip install git+https://github.com/Pshah2023/TuneEase.git@main
 ```
