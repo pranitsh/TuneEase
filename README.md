@@ -19,9 +19,9 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
    - On macOS/Linux: `source venv/bin/activate`
    - On Windows: `venv\Scripts\activate`
 3. Clone the repo:
-  ```sh
-  git clone https://github.com/Pshah2023/TuneEase.git
-  ```
+   ```sh
+   git clone https://github.com/Pshah2023/TuneEase.git
+   ```
 4. You can then perform the installation process: 
    ```sh
    pip install -e .
