@@ -18,13 +18,19 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 2. Activate the virtual environment:
    - On macOS/Linux: `source venv/bin/activate`
    - On Windows: `venv\Scripts\activate`
-3. You can then perform the installation process: 
+3. Clone the repo:
+  ```sh
+  git clone https://github.com/Pshah2023/TuneEase.git
+  ```
+4. You can then perform the installation process: 
    ```sh
-   # If you cloned it, you can run this from the project directory:
    pip install -e .
-   # If you do not want to clone it, you can do:
-   pip install -v git+https://github.com/Pshah2023/TuneEase.git@main
-   ```
+  ```
+
+In the future, you may be able to do 
+```sh
+pip install git+https://github.com/Pshah2023/TuneEase.git@main
+```
 
 ### Option 2: Using Docker
 1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: https://www.docker.com/get-started
