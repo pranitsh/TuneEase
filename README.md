@@ -114,7 +114,8 @@ print(tuneease.generate()) # Prints the resulting file path of the AI music
 
 There is documentation that I wrote to help you along the way. Just use help(tunease) and you'll see it. If you don't see a specific item documented, it's not part of the web app I created. I'll slowly document the rest of the project later.
 
-# From the previous getmusic readme
+# From the [GETMusic Readme](https://github.com/microsoft/muzic/tree/main/getmusic)
+
 ### Usage Tips
 
 Here are some tips to enhance your experience with GETMusic:
