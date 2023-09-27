@@ -14,7 +14,7 @@ class Converter:
         museScore_path (str): The path to the MuseScore executable.
 
     Methods:
-        __init__(self, log_file="server.log", museScore_path=None):
+        __init__(self, log_file="tuneease.log", museScore_path=None):
         save_file(self, file, destination_folder="temp"):
         convert_to(self, filepath, output_extension=".xml"):
         convert(self, file, output_extension=".xml"):
@@ -23,7 +23,7 @@ class Converter:
         ValueError: If museScore_path is not provided during initialization.
     """
 
-    def __init__(self, log_file="server.log", museScore_path = None):
+    def __init__(self, log_file="tuneease.log", museScore_path = None):
         self.logger = ServerLogger(log_file).get()
         self.util = PathUtility()
         self.project_directory = self.util.project_directory()

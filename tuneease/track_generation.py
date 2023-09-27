@@ -3,15 +3,19 @@ import torch
 import numpy as np
 from .getmusic.modeling.build import build_model
 from .getmusic.utils.misc import merge_opts_to_config
-from .getmusic.engine.logger import Logger
+from .logger import ServerLogger
 from .getmusic.engine.solver import Solver
 from .pipeline.args import get_args
 from .pipeline.encoding import encoding_to_MIDI
 from .pipeline.file import F
 from .pipeline.config import Config
 
-def main(input_args = None, gpu = False):
+def main(input_args = None):
     args = get_args(input_args)
+    logger = ServerLogger("tuneease.log").get()
+    logger.debug(str(args))
+    gpu = args.use_gpu
+    logger.info("Use GPU set to " + str(gpu))
     if gpu:
         torch.cuda.set_device(0)
     args.ngpus_per_node = 1
@@ -21,7 +25,6 @@ def main(input_args = None, gpu = False):
     args.distributed = args.world_size > 1
     config = Config().config
     config = merge_opts_to_config(config, args.opts)
-    logger = Logger(args)
     model = build_model(config, args)
     dataloader_info = None
     solver = Solver(gpu=gpu, config=config, args=args, model=model, dataloader=dataloader_info, logger=logger, is_sample=True)

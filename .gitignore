@@ -4,7 +4,6 @@ checkpoint.pth
 ***/cache
 */cache
 /temp
-server.log
 .benchmarks/
 ***/*.log
 *.log

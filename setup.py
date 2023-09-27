@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from tuneease.pathutility import PathUtility
 
 def main():
     setup(
@@ -96,4 +95,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    PathUtility()

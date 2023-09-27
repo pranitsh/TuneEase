@@ -15,10 +15,11 @@ class ServerLogger:
         get(self):
 
     Example:
-        >>> ServerLogger("server.log").get()
+        >>> ServerLogger("tuneease.log").get()
     """
+    logged_messages = set()
 
-    def __init__(self, name):
+    def __init__(self, name = 'tuneease.log'):
         """
         Initialize a ServerLogger with the given name.
 
@@ -28,20 +29,8 @@ class ServerLogger:
         Notes:
             Sets the loggger's log level to DEBUG, configures the log message format, and setups logs to ouput to a file and the console.
         """
-        name = name.replace('.log','')
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                          datefmt='%m/%d/%Y %I:%M:%S %p')  
-        fh = logging.FileHandler(name + ".log")
-        fh.setLevel(logging.INFO)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)        
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-        self.logger = logger
+        self.name = name.replace('.log','')
+        self.logger = logging.getLogger(name)
 
     def get(self):
         """
@@ -51,6 +40,25 @@ class ServerLogger:
             logging.Logger: The configured logger instance for server-side logging.
 
         Example:
-            >>> ServerLogger("server.log").get()
+            >>> ServerLogger("tuneease.log").get()
         """
+        self.logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                          datefmt='%m/%d/%Y %I:%M:%S %p')  
+        filehandler = logging.FileHandler(self.name + ".log")
+        filehandler.setLevel(logging.DEBUG)
+        filehandler.setFormatter(formatter)
+        self.logger.addHandler(filehandler)        
+        streamhandler = logging.StreamHandler()
+        streamhandler.setLevel(logging.INFO)
+        streamhandler.setFormatter(formatter)
+        streamhandler.addFilter(self.filter)
+        self.logger.addHandler(streamhandler)
         return self.logger
+    
+    def filter(self, record):
+        msg = record.getMessage()
+        if msg in self.logged_messages:
+            return False
+        self.logged_messages.add(msg)
+        return True

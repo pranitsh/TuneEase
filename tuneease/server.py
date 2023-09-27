@@ -7,15 +7,13 @@ from .logger import ServerLogger
 from .pathutility import PathUtility
 from .converter import Converter
 from .track_generation import main as music_generator
-from argparse import ArgumentParser
 
-util = PathUtility()    
-app = Flask(__name__, static_url_path='/static', static_folder=os.path.join(util.project_directory(), 'frontend', 'build', 'static'))
-parser = ArgumentParser()
-parser.add_argument('--museScore_path', default=None)
-parser.add_argument('--checkpoint_path', default=None)
-args = parser.parse_args()
-app.config["museScore_path"] = args.museScore_path if args.museScore_path else util.musescore_path()
+util = PathUtility()
+logger = ServerLogger().get()
+static_path = os.path.join(util.project_directory(), 'frontend', 'build', 'static')
+logger.debug(static_path)
+app = Flask(__name__, static_url_path='/static', static_folder=static_path)
+app.config["museScore_path"] = util.musescore_path()
 CORS(app)
 
 @app.route('/')
@@ -28,14 +26,14 @@ def index():
 def serve_file(filename):
     util = PathUtility()
     build_dir = os.path.join(util.project_directory(), 'frontend', 'build')
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a request " + build_dir)
     return send_from_directory(build_dir, filename)
 
 
 @app.route('/convert', methods=['POST'])
 def convert():
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a /convert request")
     if app.config["museScore_path"]:
         converter = Converter(museScore_path=app.config["museScore_path"])
@@ -64,7 +62,7 @@ def convert():
 
 @app.route('/split', methods=['POST'])
 def split():
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a /split request " + str(request.files) + " with " + str(request.form))
     try:
         file = request.files['file']
@@ -107,7 +105,7 @@ def split():
 
 @app.route('/number', methods=['POST'])
 def number():
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a /number request " + str(request.files))
     try:
         file = request.files['file']
@@ -139,7 +137,7 @@ def number():
 
 @app.route('/random', methods=['GET'])
 def random_score():
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a /random request")
     try:
         time_signature = request.form.get('time_signature', '4/4')
@@ -174,7 +172,7 @@ def random_score():
 @app.route('/generate', methods=['POST', 'GET'])
 def generate():
     """Do note the lowercase in the boolean values!"""
-    logger = ServerLogger("server.log").get()
+    logger = ServerLogger("tuneease.log").get()
     logger.info("Received a /generate request with " + str(request.form))
     conditional_tracks = "".join([
         str(int(request.form.get("condition-lead", "false") == "true")),

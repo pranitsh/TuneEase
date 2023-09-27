@@ -47,7 +47,7 @@ class Solver(object):
             os.makedirs(self.ckpt_dir, exist_ok=True)
             os.makedirs(self.oct_dir, exist_ok=True)
 
-        self.logger.log_info('Load dictionary: {} tokens.'.format(len(self.t_h.ids_to_tokens)))
+        self.logger.debug('Load dictionary: {} tokens.'.format(len(self.t_h.ids_to_tokens)))
 
         beat_note_factor =mc.beat_note_factor
         max_notes_per_bar = mc.max_notes_per_bar
@@ -73,7 +73,7 @@ class Solver(object):
             self.lr = base_lr * args.world_size * config['dataloader']['batch_size']
         else:
             raise NotImplementedError('Unknown type of adjust lr {}!'.format(adjust_lr))
-        self.logger.log_info('Get lr {} from base lr {} with {}'.format(self.lr, base_lr, adjust_lr))
+        self.logger.debug('Get lr {} from base lr {} with {}'.format(self.lr, base_lr, adjust_lr))
 
         if hasattr(model, 'get_optimizer_and_scheduler') and callable(getattr(model, 'get_optimizer_and_scheduler')):
             optimizer_and_scheduler = model.get_optimizer_and_scheduler(config['solver']['optimizers_and_schedulers'])
@@ -90,7 +90,7 @@ class Solver(object):
         else:
             self.ema = None
 
-        self.logger.log_info(str(get_model_parameters_info(self.model)))
+        self.logger.debug(str(get_model_parameters_info(self.model)))
 
         if self.gpu:
             self.model.to(self.args.local_rank)
@@ -98,16 +98,16 @@ class Solver(object):
         self.device = self.args.local_rank
 
         if self.args.distributed:
-            self.logger.log_info('Distributed, begin DDP the model...')
+            self.logger.debug('Distributed, begin DDP the model...')
             self.model = torch.nn.parallel.DistributedDataParallel(self.model, device_ids=[self.args.local_rank], find_unused_parameters=False) # 
-            self.logger.log_info('Distributed, DDP model done!')
+            self.logger.debug('Distributed, DDP model done!')
         
         self.args.amp = self.args.amp and AMP
         if self.args.amp:
             self.scaler = GradScaler()
-            self.logger.log_info('Using AMP for training!')
+            self.logger.debug('Using AMP for training!')
         self.batch_size = self.config['dataloader']['batch_size']
-        self.logger.log_info("{}: global rank {}: prepare solver done!".format(self.args.name, self.args.global_rank), check_primary=False)
+        self.logger.debug("{}: global rank {}: prepare solver done!".format(self.args.name, self.args.global_rank))
 
     def _get_optimizer_and_scheduler(self, op_sc_list):
         optimizer_and_scheduler = {}
@@ -271,11 +271,11 @@ class Solver(object):
                 if save or force:
                     save_path = os.path.join(self.ckpt_dir, '{}e_{}iter.pth'.format(str(self.last_epoch).zfill(6), self.last_iter))
                     torch.save(state_dict, save_path)
-                    self.logger.log_info('saved in {}'.format(save_path))    
+                    self.logger.debug('saved in {}'.format(save_path))    
                 
                 save_path = os.path.join(self.ckpt_dir, 'last.pth')
                 torch.save(state_dict, save_path)  
-                self.logger.log_info('saved in {}'.format(save_path))    
+                self.logger.debug('saved in {}'.format(save_path))    
         
     def resume(self, 
                path=None, 
@@ -329,7 +329,7 @@ class Solver(object):
                     elif load_others: # such as start_epoch, end_epoch, ....
                         self.optimizer_and_scheduler[op_sc_n][k] = op_sc[k]
         
-            self.logger.log_info('Resume from {}'.format(path))
+            self.logger.debug(str('Resume from {}'.format(path)))
         else:
             raise ValueError('checkpoint not found')
     
@@ -363,12 +363,16 @@ class Solver(object):
                     
                     for k in loss_dict:
                         info += ' | {}: {:.4f}'.format(k, float(loss_dict[k]))
-                        self.logger.add_scalar(tag='train/{}/{}'.format(loss_n, k), scalar_value=float(loss_dict[k]), global_step=self.last_iter)
+                        self.logger.debug(str('train/{}/{}'.format(loss_n, k)))
+                        self.logger.debug(str(float(loss_dict[k])))
+                        self.logger.debug(str(self.last_iter))
                 
                 lrs = self._get_lr(return_type='dict')
                 for k in lrs.keys():
                     lr = lrs[k]
-                    self.logger.add_scalar(tag='train/{}_lr'.format(k), scalar_value=lrs[k], global_step=self.last_iter)
+                    self.logger.debug(str('train/{}_lr'.format(k)))
+                    self.logger.debug(str(lrs[k]))
+                    self.logger.debug(str(self.last_iter))
 
                 info += ' || {}'.format(self._get_lr())
                     
@@ -389,27 +393,27 @@ class Solver(object):
                 else:  
                     model = self.model 
 
-                self.logger.log_info(info)
+                self.logger.debug(str(info))
             
             itr_start = time.time()
 
             if self.validate_iterations > 0 and (self.last_iter + 1) % self.validate_iterations == 0:
                 if self.logger is not None:
-                    self.logger.log_info("save model for iteration {}".format(self.last_iter))
+                    self.logger.debug(str("save model for iteration {}".format(self.last_iter)))
     
                 self.save(force=True)
                 self.validate_epoch()
                 self.model.train()
                 
                 if self.logger is not None:
-                    self.logger.log_info("save model done")
+                    self.logger.debug("save model done")
 
         assert itr >= 0, "The data is too less to form one iteration!"
         self.dataloader['train_iterations'] = itr + 1
 
     def validate_epoch(self):
         if self.logger is not None:
-            self.logger.log_info("Enter validate_epoch")
+            self.logger.debug("Enter validate_epoch")
             
         if 'validation_loader' not in self.dataloader:
             val = False
@@ -460,7 +464,7 @@ class Solver(object):
                             lt=format_seconds(itr_time_avg*(self.dataloader['train_iterations']-itr-1))
                             )
 
-                    self.logger.log_info(info)
+                    self.logger.debug(info)
                 itr_start = time.time()
                 
             assert itr >= 0, "The data is too less to form one iteration!"
@@ -474,8 +478,10 @@ class Solver(object):
                     info += ': Epoch {}/{}'.format(self.last_epoch, self.max_epochs)
                     for k in loss_dict:
                         info += ' | {}: {:.4f}'.format(k, float(loss_dict[k]))
-                        self.logger.add_scalar(tag='val/{}/{}'.format(loss_n, k), scalar_value=float(loss_dict[k]), global_step=self.last_epoch)
-                self.logger.log_info(info)
+                        self.logger.debug(str('val/{}/{}'.format(loss_n, k)))
+                        self.logger.debug(str(float(loss_dict[k])))
+                        self.logger.debug(str(self.last_epoch))
+                self.logger.debug(info)
 
     def validate(self):
         self.validation_epoch()
@@ -483,7 +489,7 @@ class Solver(object):
     def train(self):
         start_epoch = self.last_epoch + 1
         self.start_train_time = time.time()
-        self.logger.log_info('{}: global rank {}: start training...'.format(self.args.name, self.args.global_rank), check_primary=False)
+        self.logger.debug(str('{}: global rank {}: start training...'.format(self.args.name, self.args.global_rank)))
         
         for epoch in range(start_epoch, self.max_epochs):
             self.train_epoch()

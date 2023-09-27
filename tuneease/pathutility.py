@@ -3,6 +3,18 @@ import sys
 import shutil
 import urllib.request
 from .logger import ServerLogger
+from argparse import ArgumentParser
+
+def get_args():
+    parser = ArgumentParser()
+    parser.add_argument('--musescore_path', default=None)
+    parser.add_argument('--checkpoint_path', default=None)
+    args = parser.parse_args()
+    logger = ServerLogger('tuneease.log').get()
+    logger.debug("checkpoint_path from args: " + str(args.checkpoint_path))
+    logger.debug("musescore_path from args: " + str(args.musescore_path))
+    return args
+
 
 class PathUtility:
     """
@@ -21,13 +33,20 @@ class PathUtility:
         >>> path_util.current_file_path
         /path/to/the/file
     """
-    logger = ServerLogger('server.log').get()
+    logger = ServerLogger('tuneease.log').get()
     
     def __init__(self):
         self.current_file_path = os.path.abspath(__file__)
-        self.checkpoint_path(printsuccess = True)
-        self.musescore_path(printsuccess = True)
-        self.logger = ServerLogger('server.log').get()
+        args = get_args()
+        self.logger = ServerLogger('tuneease.log').get()
+        if args.checkpoint_path:
+            self.checkpoint_path = lambda: os.path.abspath(args.checkpoint_path)
+        else:
+            self.checkpoint_path(printsuccess = True)
+        if args.musescore_path:
+            self.musescore_path = lambda: os.path.abspath(args.musescore_path)
+        else:
+            self.musescore_path(printsuccess = True)
 
     def project_directory(self):
         """

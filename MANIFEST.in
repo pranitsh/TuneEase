@@ -1,3 +1,14 @@
 include tuneease/getmusic/utils/key_profile.pickle
 include tuneease/getmusic/utils/dict.txt
-graft frontend/build
+include frontend/build/robots.txt
+include frontend/build/manifest.json
+include frontend/build/logo512.png
+include frontend/build/logo192.png
+include frontend/build/index.html
+include frontend/build/favicon.ico
+include frontend/build/asset-manifest.json
+include frontend/build/static/css/main.752696bf.css
+include frontend\build\static\css\main.752696bf.css.map
+include frontend\build\static\js\main.c135b233.js
+include frontend\build\static\js\main.c135b233.js.LICENSE.txt
+include frontend\build\static\js\main.c135b233.js.map

@@ -21,7 +21,7 @@ def get_music_file():
 def get_converter():
     path_util = PathUtility()
     museScore_path = path_util.musescore_path()
-    return Converter(log_file="server.log", museScore_path=museScore_path)
+    return Converter(log_file="tuneease.log", museScore_path=museScore_path)
 
 def test_tuneease_init(get_tuneease):
     tuneease = get_tuneease

@@ -53,6 +53,7 @@ def get_args(input_args):
         ('--no_load_optimizer_and_scheduler', bool, True, "I'm not sure what this does. Send a pull request please!"),
         ('--no_load_others', bool, True, "I'm not sure what this does. Send a pull request please!"),
         ('--training_model', bool, False, "If you are training the model, this changes the output directory to 'OUTPUT.'"),
+        ('--use_gpu', int, 0, "Whether to use GPU or not. False for CPU.")
     ]
     for arg, arg_type, default_val, help in common_args:
         parser.add_argument(arg, type=arg_type, default=default_val, help=help)
@@ -91,4 +92,5 @@ def get_args(input_args):
     random_seconds_shift = datetime.timedelta(seconds=np.random.randint(60))
     now = (datetime.datetime.now() - random_seconds_shift).strftime('%Y-%m-%dT%H-%M-%S')
     args.save_dir = os.path.join(args.output, args.name, now)
+    args.use_gpu = bool(int(args.use_gpu))
     return args

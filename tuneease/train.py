@@ -3,7 +3,7 @@ import torch
 from .getmusic.modeling.build import build_model
 from .getmusic.data.build import build_dataloader
 from .getmusic.utils.misc import merge_opts_to_config, modify_config_for_debug
-from .getmusic.engine.logger import Logger
+from .logger import ServerLogger
 from .getmusic.engine.solver import Solver
 from .getmusic.distributed.launch import launch
 from .pipeline.args import get_args
@@ -40,8 +40,8 @@ def main_worker(local_rank, args):
     if args.debug:
         config = modify_config_for_debug(config)
     
-    logger = Logger(args)
-    logger.save_config(config)
+    logger = ServerLogger("tuneease.log").get()
+    logger.debug(str(args))
 
     model = build_model(config, args)
 

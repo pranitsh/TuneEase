@@ -165,7 +165,7 @@ class TuneEase:
         s.write('musicxml', filepath)
         return filepath
 
-    def generate(self, input_dict = dict(), file = None, gpu= False):
+    def generate(self, input_dict = dict(), file = None, gpu=False):
         """
         Generate music based on user input or a template file.
 
@@ -230,10 +230,10 @@ class TuneEase:
             assert os.path.exists(file)
             filepath = file
         else:
-            self.logger.info("Performing with template file")
+            self.logger.info("Performing with template file with " +str(input_dict.get('number_measures', '5') + " measures"))
             time_signature = input_dict.get('time_signature', '4/4')
             quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-            number_measures = int(input_dict.get('number_measures', '2')) * int(time_signature.split('/')[0])
+            number_measures = int(input_dict.get('number_measures', '5')) * int(time_signature.split('/')[0])
             stream = music21.stream.Stream()
             time_signature = music21.meter.TimeSignature(time_signature)
             stream.append(time_signature)
@@ -267,8 +267,9 @@ class TuneEase:
             "--seed", str(seed),
             "--conditional_tracks", conditional_tracks,
             "--content_tracks", content_tracks,
+            "--use_gpu", int(gpu),
         ]
-        save_path = os.path.splitext(music_generator(cmd, gpu=gpu))[0]
+        save_path = os.path.splitext(music_generator(cmd))[0]
         musicxml_file = music21.converter.parse(save_path + ".mid")
         try:
             musicxml_file.write('musicxml', fp=save_path + ".xml")
