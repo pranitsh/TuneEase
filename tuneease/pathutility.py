@@ -21,10 +21,12 @@ class PathUtility:
         >>> path_util.current_file_path
         /path/to/the/file
     """
+    logger = ServerLogger('server.log').get()
+    
     def __init__(self):
         self.current_file_path = os.path.abspath(__file__)
-        self.checkpoint_path()
-        self.musescore_path()
+        self.checkpoint_path(printsuccess = True)
+        self.musescore_path(printsuccess = True)
         self.logger = ServerLogger('server.log').get()
 
     def project_directory(self):
@@ -43,7 +45,7 @@ class PathUtility:
         """
         return os.path.dirname(os.path.dirname(self.current_file_path))
 
-    def musescore_path(self):
+    def musescore_path(self, printsuccess = False):
         """
         Locate and return the path to the MuseScore executable.
 
@@ -93,17 +95,23 @@ class PathUtility:
             if musescore_windows:
                 path = os.path.join(directory, musescore_windows)
                 if os.path.exists(path):
-                    print(f'Found museScore {path}')
+                    if printsuccess:
+                        toprint = f'Found museScore {path}'
+                        self.logger.info(toprint)
                     return path
             if mscore_mac:
                 path = os.path.join(directory, mscore_mac)
                 if os.path.exists(path):
-                    print(f'Found museScore {path}')
+                    if printsuccess:
+                        toprint = f'Found museScore {path}'
+                        self.logger.info(toprint)
                     return path
             if musescore_linux:
                 path = os.path.join(directory, musescore_linux)
                 if os.path.exists(path):
-                    print(f'Found museScore {path}')
+                    if printsuccess:
+                        toprint = f'Found museScore {path}'
+                        self.logger.info(toprint)
                     return path
                 if sys.platform.startswith('linux'):
                     self.logger.info("Sometimes terminal downloads are too slow. Download with your browser:")
@@ -121,25 +129,25 @@ class PathUtility:
         self.logger.info("On Windows and macOS, install MuseScore through the website:")
         self.logger.info("[https://musescore.org/en](https://musescore.org/en).")
         self.logger.info("Attempts are made to find it automatically. Tested for windows.")
-        self.logger.info("Test for Windows. Untested for macOS")
-        raise FileNotFoundError('MuseScore installation not found.' \
-            'If necessary, use the flag --museScore_path <museScore_path>')
+        self.logger.info("If necessary, use --museScore_path <museScore_path>")
+        return None
 
-    def checkpoint_path(self):
-        if not os.path.exists(os.path.join(self.project_directory(), "checkpoint.pth")):
-            self.logger.info("You have to install the below:")
+    def checkpoint_path(self, printsuccess = False):
+        path = os.path.join(self.project_directory(), "checkpoint.pth")
+        if not os.path.exists(path):
+            self.logger.info("You have to install the below with the following path:")
             fileurl = 'https://1drv.ms/u/s!ArHNvccy1VzPkWGKXZDQY5k-kDi4?e=fFxcEq'
             self.logger.info(fileurl)
-            toprint = fileurl + "\nThen, move it this spot:"
+            toprint = fileurl + f"{path}"
             self.logger.info(toprint)
-            filename = os.path.join(self.project_directory(), "checkpoint.pth")
-            self.logger.info(filename)
-            raise FileNotFoundError("Check the logs. Could not install the model checkpoint.")
+            return None
         else:
-            print(f'Found {os.path.join(self.project_directory(), "checkpoint.pth")}.')
-            return os.path.join(self.project_directory(), "checkpoint.pth")
+            if printsuccess:
+                toprint = f'Found museScore {path}'
+                self.logger.info(toprint)
+            return path
 
     def download_progress_bar(self, blocknum, blocksize, totalsize):
         downloaded = blocknum * blocksize
         percent_complete = (downloaded / totalsize) * 100
-        print(f'Downloaded {percent_complete:.2f}% from {totalsize}', end='\r')
+        self.logger.info(f'Downloaded {percent_complete:.2f}% from {totalsize}')

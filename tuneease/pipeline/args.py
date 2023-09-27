@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 from .compute import Node
 from ..getmusic.utils.misc import seed_everything
+from ..pathutility import PathUtility
 
 def validate_binary_string(arg):
     if not arg.isdigit() or len(arg) != 7:
@@ -14,13 +15,16 @@ def validate_binary_string(arg):
 def get_args(input_args):
     node = Node()
     parser = argparse.ArgumentParser(description='PyTorch Training script')
+    pathutil = PathUtility()
+    if not pathutil.checkpoint_path():
+        raise FileNotFoundError("Could not find the checkpoint.pth")
     # Contains additional args as necessary
     common_args = [
         ('--config_file', str, 'configs/train.yaml', 'path of config file'),
         ('--name', str, 'inference_cache', 'the name of this experiment, if not provided, set to the name of config file'),
         ('--output', str, 'cache', 'directory to save the results'),
         ('--log_frequency', int, 10, 'print frequency'),
-        ('--load_path', str, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "checkpoint.pth"), 'path to model that need to be loaded used for loading pretrained model'),
+        ('--load_path', str, pathutil.checkpoint_path(), 'path to model that need to be loaded used for loading pretrained model'),
         ('--resume_name', str, None, 'resume one experiment with the given name'),
         ('--auto_resume', bool, False, 'resume the training'),
         ('--num_node', int, node.NUM_NODE, 'number of nodes for distributed training'),

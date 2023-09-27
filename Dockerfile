@@ -11,7 +11,7 @@ RUN mkdir temp && cd temp
 RUN wget https://cdn.jsdelivr.net/musescore/v4.1.1/MuseScore-4.1.1.232071203-x86_64.AppImage -O "MuseScore.AppImage"
 RUN chmod +x ./MuseScore.AppImage && cd ..
 
-RUN wget -O 'checkpoint.pth' 'https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4"'
+RUN wget -O 'checkpoint.pth' 'https://1drv.ms/u/s!ArHNvccy1VzPkWGKXZDQY5k-kDi4?e=fFxcEq'
 
 # Expose a port from the container to the host
 EXPOSE 8080

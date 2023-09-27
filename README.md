@@ -23,7 +23,7 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
    # If you cloned it, you can run this from the project directory:
    pip install -e .
    # If you do not want to clone it, you can do:
-   pip install -e git+https://github.com/Pshah2023/TuneEase.git@main#egg=tuneease --upgrade
+   pip install -v git+https://github.com/Pshah2023/TuneEase.git@main
    ```
 
 ### Option 2: Using Docker
@@ -39,23 +39,19 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 ### Option 3: Codebase Sharing
 
 1. Clone this repository to your local machine and navigate to the project directory in your terminal.
-2. Install the model checkpoint with the below:
-   ```sh
-   wget https://onedrive.live.com/download?resid=CF5CD532C7BDCDB1%212273&authkey=!AOXAcumYZkpQjn4" -O checkpoint.pth
-   ```
-   Preferably, use your browser to download this link, as it is both faster and more convenient. **You must place it at <project_directory>/checkpoint.pth**
-3. Create a virtual environment using Python 3:
+2. Install the [model checkpoint](https://1drv.ms/u/s!ArHNvccy1VzPkWGKXZDQY5k-kDi4?e=fFxcEq). **You must place it at <project_directory>/checkpoint.pth**
+1. Create a virtual environment using Python 3:
    ```sh
    python3 -m venv venv
    ```
-4. Activate the virtual environment:
+2. Activate the virtual environment:
    - On macOS/Linux: `source venv/bin/activate`
    - On Windows: `venv\Scripts\activate`
-5. Install the project dependencies from `requirements.txt`:
+3. Install the project dependencies from `requirements.txt`:
    ```sh
    pip install --no-cache-dir -r requirements.txt
    ```
-6. Install MuseScore. On a version of linux,
+4. Install MuseScore. On a version of linux,
    ```sh
    mkdir temp
    cd temp

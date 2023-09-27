@@ -9,10 +9,11 @@ from .converter import Converter
 from .track_generation import main as music_generator
 from argparse import ArgumentParser
 
-util = PathUtility()
+util = PathUtility()    
 app = Flask(__name__, static_url_path='/static', static_folder=os.path.join(util.project_directory(), 'frontend', 'build', 'static'))
 parser = ArgumentParser()
-parser.add_argument('--museScore_path')
+parser.add_argument('--museScore_path', default=None)
+parser.add_argument('--checkpoint_path', default=None)
 args = parser.parse_args()
 app.config["museScore_path"] = args.museScore_path if args.museScore_path else util.musescore_path()
 CORS(app)
@@ -36,13 +37,29 @@ def serve_file(filename):
 def convert():
     logger = ServerLogger("server.log").get()
     logger.info("Received a /convert request")
-    converter = Converter(museScore_path=app.config["museScore_path"])
-    try:
+    if app.config["museScore_path"]:
+        converter = Converter(museScore_path=app.config["museScore_path"])
+        try:
+            file = request.files['file']
+            output_filepath = converter.convert(file)
+            return send_file(output_filepath, as_attachment=True, download_name=output_filepath)
+        except Exception as e:
+            return str(e), 500
+    else:
         file = request.files['file']
-        output_filepath = converter.convert(file)
-        return send_file(output_filepath, as_attachment=True, download_name=output_filepath)
-    except Exception as e:
-        return str(e), 500
+        assert file.filename != '', "File is empty"
+        filetail = os.path.split(file.filename)[-1]
+        filepath = os.path.join(util.project_directory(), 'temp', filetail)
+        file.save(filepath)
+        fileext = os.path.splitext(filepath)[0]
+        musicxml_file = music21.converter.parse(filepath)
+        try:
+            musicxml_file.write('musicxml', fp=fileext + ".xml")
+        except Exception as E:
+            logger.error("Had an error converting the generated content to xml (likely some error with the input file)" + str(E))
+            return 500
+        return send_file(fileext + ".xml", as_attachment=True, download_name=fileext + ".xml")
+
 
 
 @app.route('/split', methods=['POST'])
