@@ -18,19 +18,10 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 2. Activate the virtual environment:
    - On macOS/Linux: `source venv/bin/activate`
    - On Windows: `venv\Scripts\activate`
-3. Clone the repo:
+3. Quick and simple:
    ```sh
-   git clone https://github.com/Pshah2023/TuneEase.git
+   pip install git+https://github.com/Pshah2023/TuneEase.git@main
    ```
-4. You can then perform the installation process: 
-   ```sh
-   pip install -e .
-   ```
-
-You can do the below, but you won't have access to the website yet.
-```sh
-pip install git+https://github.com/Pshah2023/TuneEase.git@main
-```
 
 ### Option 2: Using Docker
 1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: https://www.docker.com/get-started
@@ -98,10 +89,14 @@ If you installed through pip:
 tuneease-generate # generates something and prints the location of the generated file
 tuneease # starts the server and prints the port to go to for the website
 ```
-Attempts are made to find your MuseScore path automatically for the website. **Optionally, include your MuseScore path with the flag** 
+Attempts are made to find your MuseScore and checkpoint path automatically. **Optionally, include your MuseScore and checkpoint path with the flag** 
 ```sh
-tuneease --museScore_path <path>
-python -m tuneease.server --museScore_path <path>
+# For just generating one item
+tuneease-generate --museScore_path <path> --checkpoint_path <path>
+python -m tuneease.tuneease --museScore_path <path> --checkpoint_path <path>
+# For the server
+tuneease --museScore_path <path> --checkpoint_path <path>
+python -m tuneease.server --museScore_path <path> --checkpoint_path <path>
 ```
 Normally, you can access the server at http://localhost:8080, or you can follow whatever port flask tells you to go to.
 
@@ -112,7 +107,7 @@ tuneease = TuneEase()
 print(tuneease.generate()) # Prints the resulting file path of the AI music
 ```
 
-There is documentation that I wrote to help you along the way. Just use help(tunease) and you'll see it. If you don't see a specific item documented, it's not part of the web app I created. I'll slowly document the rest of the project later.
+There is documentation that I wrote to help you along the way. Just use help(tuneease) and you'll see it. If you don't see a specific item documented, it's not part of the web app I created. I'll slowly document the rest of the project later.
 
 # From the [GETMusic Readme](https://github.com/microsoft/muzic/tree/main/getmusic)
 
