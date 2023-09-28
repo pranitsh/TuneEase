@@ -163,18 +163,16 @@ class PathUtility:
                     return filename
         self.logger.info("On Windows and macOS, install MuseScore through the website:")
         self.logger.info("[https://musescore.org/en](https://musescore.org/en).")
-        self.logger.info("Attempts are made to find it automatically. Tested for windows.")
-        self.logger.info("If necessary, use --museScore_path <museScore_path>")
+        self.logger.info("Attempts are made to find it automatically. If necessary, use --musescore_path <path>")
         return None
 
     def checkpoint_path(self, printsuccess = False):
         path = os.path.join(self.project_directory(), "checkpoint.pth")
         if not os.path.exists(path):
-            self.logger.info("You have to install the below with the following path:")
+            self.logger.info("Install the below at the following path or use --checkpoint_path <path>")
             fileurl = 'https://1drv.ms/u/s!ArHNvccy1VzPkWGKXZDQY5k-kDi4?e=fFxcEq'
             self.logger.info(fileurl)
-            toprint = fileurl + f"{path}"
-            self.logger.info(toprint)
+            self.logger.info(path)
             return None
         else:
             if printsuccess:

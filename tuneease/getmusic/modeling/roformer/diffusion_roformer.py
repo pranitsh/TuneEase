@@ -72,8 +72,8 @@ class DiffusionRFM(nn.Module):
         self.num_classes = self.roformer.vocab_size + 1 # defined in vocabulary, add an additional mask
         self.cond_weight = self.roformer.cond_weight
         self.tracks = 14
-        self.pad_index = mc.duration_max * mc.pos_resolution - 1
-        self.figure_size = mc.bar_max * mc.beat_note_factor * mc.max_notes_per_bar * mc.pos_resolution
+        self.pad_index = mc.DURATION_MAX * mc.POS_RESOLUTION - 1
+        self.figure_size = mc.BAR_MAX * mc.BEAT_NOTE_FACTOR * mc.MAX_NOTES_PER_BAR * mc.POS_RESOLUTION
         self.num_timesteps = diffusion_step
         self.parametrization = 'x0'
         self.auxiliary_loss_weight = auxiliary_loss_weight
@@ -174,8 +174,8 @@ class DiffusionRFM(nn.Module):
             if i % 2 == 1: # duration 
                 track[:, self.pad_index+1:-1, :] = -70 # only decode duration tokens
             else: # only decode pitch tokens in $i$-th track
-                start = mc.tracks_start[i // 2]
-                end = mc.tracks_end[i // 2]
+                start = mc.TRACKS_START[i // 2]
+                end = mc.TRACKS_END[i // 2]
                 track[:,:self.pad_index, :] = -70 
                 track[:,self.pad_index+1:start,:] = -70
                 track[:,end+1:-1,:] = -70

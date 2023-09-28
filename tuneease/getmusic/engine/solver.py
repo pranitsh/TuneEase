@@ -49,13 +49,13 @@ class Solver(object):
 
         self.logger.debug('Load dictionary: {} tokens.'.format(len(self.t_h.ids_to_tokens)))
 
-        beat_note_factor =mc.beat_note_factor
-        max_notes_per_bar = mc.max_notes_per_bar
-        pos_resolution = mc.pos_resolution
-        bar_max = mc.bar_max
+        beat_note_factor =mc.BEAT_NOTE_FACTOR
+        max_notes_per_bar = mc.MAX_NOTES_PER_BAR
+        pos_resolution = mc.POS_RESOLUTION
+        bar_max = mc.BAR_MAX
         self.pos_in_bar = beat_note_factor * max_notes_per_bar * pos_resolution
-        self.pad_index = mc.duration_max * mc.pos_resolution - 1
-        self.figure_size = mc.bar_max * mc.beat_note_factor * mc.max_notes_per_bar * mc.pos_resolution
+        self.pad_index = mc.DURATION_MAX * mc.POS_RESOLUTION - 1
+        self.figure_size = mc.BAR_MAX * mc.BEAT_NOTE_FACTOR * mc.MAX_NOTES_PER_BAR * mc.POS_RESOLUTION
 
         if 'clip_grad_norm' in config['solver']:
             self.clip_grad_norm = instantiate_from_config(config['solver']['clip_grad_norm'])

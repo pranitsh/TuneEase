@@ -1,9 +1,9 @@
-from torch.utils.data import Dataset
-import numpy as np
-import torch
 import random
 import itertools as it
 from ...getmusic.data.indexed_datasets import IndexedDataset
+import numpy as np
+import torch
+from torch.utils.data import Dataset
 
 class BigDataset(Dataset):
     def __init__(self, prefix, vocab_size, path=None):

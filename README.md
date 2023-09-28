@@ -13,7 +13,7 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 **Do not run this without a virtual environment!**
 1. Create a virtual environment using Python 3:
    ```sh
-   python3 -m venv venv
+   python3 -m venv env
    ```
 2. Activate the virtual environment:
    - On macOS/Linux: `source venv/bin/activate`
@@ -72,31 +72,28 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
 1. Introduced the ability to use a CPU or a GPU.
 2. Structural changes to the structure.
    1. Instead of using a yaml to instantiate the model, I used a new train.py with a variable that contains the data from train.yaml
-   2. Created a folder named pipeline that contains code that was previously duplicated many times. (Quite painful...)
-   3. Improved the Pylint score from 1.25 to 2.46
+   2. Created a folder named pipeline that contains code that was previously duplicated many times.
+   3. Prevented duplicated runs of the same code with new classes
+   4. Improved the Pylint score from 1.25 to 3.90
 3. Changed hierarchy and propagated changes.
-4. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to an automatic install process offered here.
+4. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to the more automatic install process offered here.
 
 # Usage
 
-If you cloned the repo:
-```sh
-python -m tuneease.tuneease # generates a file and prints the location to the file
-python -m tuneease.server # starts the server for you to use the app through the port that is printed
-``` 
-If you installed through pip:
-```sh
-tuneease-generate # generates something and prints the location of the generated file
-tuneease # starts the server and prints the port to go to for the website
+Attempts are made to find your MuseScore and checkpoint path automatically. **Optionally, include your MuseScore and checkpoint path with the flag.** You do not need MuseScore most of the time, but you will need the checkpoint for the AI music.
+
+Use the below to generate one file.
+```bash
+# If you installed through pip
+tuneease-generate --checkpoint_path <required path>
+# If you installed through code sharing
+python -m tuneease.tuneease --checkpoint_path <required path>
 ```
-Attempts are made to find your MuseScore and checkpoint path automatically. **Optionally, include your MuseScore and checkpoint path with the flag** 
-```sh
-# For just generating one item
-tuneease-generate --museScore_path <path> --checkpoint_path <path>
-python -m tuneease.tuneease --museScore_path <path> --checkpoint_path <path>
-# For the server
-tuneease --museScore_path <path> --checkpoint_path <path>
-python -m tuneease.server --museScore_path <path> --checkpoint_path <path>
+
+If you want to use the server, the website is mainly for using the AI.
+```bash
+tuneease --museScore_path <optional path> --checkpoint_path <optional path>
+python -m tuneease.server --museScore_path <optional path> --checkpoint_path <optional path>
 ```
 Normally, you can access the server at http://localhost:8080, or you can follow whatever port flask tells you to go to.
 

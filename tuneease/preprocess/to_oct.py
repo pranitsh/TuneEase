@@ -5,7 +5,7 @@
 from multiprocessing import Pool
 import os
 import sys
-from ..getmusic.utils.midi_config import bar_max, max_notes_per_bar, beat_note_factor, pos_resolution, max_inst, max_pitch, duration_max, max_tempo, max_velocity, sample_len_max, pool_num
+from ..getmusic.utils.midi_config import BAR_MAX, MAX_NOTES_PER_BAR, BEAT_NOTE_FACTOR, POS_RESOLUTION, MAX_INST, MAX_PITCH, DURATION_MAX, MAX_TEMPO, MAX_VELOCITY, SAMPLE_LEN_MAX, POOL_NUM
 from ..pipeline.encoding_helpers import TS, v2e, b2e
 from ..pipeline.file import F
 sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
@@ -19,23 +19,23 @@ def gen_dictionary(file_name):
     ts = TS()
     num = 0
     with open(file_name, 'w') as f:
-        for j in range(bar_max):
+        for j in range(BAR_MAX):
             print('<0-{}>'.format(j), num, file=f)
-        for j in range(beat_note_factor * max_notes_per_bar * pos_resolution):
+        for j in range(BEAT_NOTE_FACTOR * MAX_NOTES_PER_BAR * POS_RESOLUTION):
             print('<1-{}>'.format(j), num, file=f)
-        for j in range(max_inst + 1 + 1):
+        for j in range(MAX_INST + 1 + 1):
             # max_inst + 1 for percussion
             print('<2-{}>'.format(j), num, file=f)
-        for j in range(2 * max_pitch + 1 + 1):
+        for j in range(2 * MAX_PITCH + 1 + 1):
             # max_pitch + 1 ~ 2 * max_pitch + 1 for percussion
             print('<3-{}>'.format(j), num, file=f)
-        for j in range(duration_max * pos_resolution):
+        for j in range(DURATION_MAX * POS_RESOLUTION):
             print('<4-{}>'.format(j), num, file=f)
-        for j in range(v2e(max_velocity) + 1):
+        for j in range(v2e(MAX_VELOCITY) + 1):
             print('<5-{}>'.format(j), num, file=f)
         for j in range(len(ts.ts_list)):
             print('<6-{}>'.format(j), num, file=f)
-        for j in range(b2e(max_tempo) + 1):
+        for j in range(b2e(MAX_TEMPO) + 1):
             print('<7-{}>'.format(j), num, file=f)
 
 def G(file_name):
@@ -58,7 +58,7 @@ def encoding_to_str(e):
     p = 0
     tokens_per_note = 8
     return ' '.join((['<{}-{}>'.format(j, k if j > 0 else k + bar_index_offset) for i in e[p: p +\
-                sample_len_max] if i[0] + bar_index_offset < bar_max for j, k in enumerate(i)]))   # 8 - 1 for append_eos functionality of binarizer in fairseq
+                SAMPLE_LEN_MAX] if i[0] + bar_index_offset < BAR_MAX for j, k in enumerate(i)]))   # 8 - 1 for append_eos functionality of binarizer in fairseq
 
 if __name__ == '__main__':
     data_path = sys.argv[1]
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     total_file_cnt = len(file_list)
     file_list_split = file_list
     output_file = '{}/oct.txt'.format(prefix)
-    with Pool(pool_num) as p:
+    with Pool(POOL_NUM) as p:
         result = list(p.imap_unordered(G, file_list_split))
         all_cnt += sum((1 if i is not None else 0 for i in result))
         ok_cnt += sum((1 if i is True else 0 for i in result))

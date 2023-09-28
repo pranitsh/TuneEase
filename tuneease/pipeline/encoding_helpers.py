@@ -1,4 +1,4 @@
-from ..getmusic.utils.midi_config import max_ts_denominator, max_notes_per_bar, duration_max, pos_resolution, min_tempo, max_tempo, tempo_quant, velocity_quant
+from ..getmusic.utils.midi_config import MAX_TS_DENOMINATOR, MAX_NOTES_PER_BAR, DURATION_MAX, POS_RESOLUTION, MIN_TEMPO, MAX_TEMPO, TEMPO_QUANT, VELOCITY_QUANT
 import math
 
 class TS:
@@ -6,8 +6,8 @@ class TS:
     ts_list = list()
 
     def __init__(self):
-        for i in range(0, max_ts_denominator + 1):  # 1 ~ 64
-            for j in range(1, ((2 ** i) * max_notes_per_bar) + 1):
+        for i in range(0, MAX_TS_DENOMINATOR + 1):  # 1 ~ 64
+            for j in range(1, ((2 ** i) * MAX_NOTES_PER_BAR) + 1):
                 self.ts_dict[(j, 2 ** i)] = len(self.ts_dict)
                 self.ts_list.append((j, 2 ** i))
 
@@ -25,8 +25,8 @@ class Dur:
     dur_dec = list()
 
     def __init__(self) -> None:        
-        for i in range(duration_max):
-            for j in range(pos_resolution):
+        for i in range(DURATION_MAX):
+            for j in range(POS_RESOLUTION):
                 self.dur_dec.append(len(self.dur_enc))
                 for k in range(2 ** i):
                     self.dur_enc.append(len(self.dur_dec) - 1)
@@ -41,13 +41,13 @@ def e2d(x):
 
 def time_signature_reduce(numerator, denominator):
     # reduction (when denominator is too large)
-    global max_ts_denominator
-    global max_notes_per_bar
-    while denominator > 2 ** max_ts_denominator and denominator % 2 == 0 and numerator % 2 == 0:
+    global MAX_TS_DENOMINATOR
+    global MAX_NOTES_PER_BAR
+    while denominator > 2 ** MAX_TS_DENOMINATOR and denominator % 2 == 0 and numerator % 2 == 0:
         denominator //= 2
         numerator //= 2
     # decomposition (when length of a bar exceed max_notes_per_bar)
-    while numerator > max_notes_per_bar * denominator:
+    while numerator > MAX_NOTES_PER_BAR * denominator:
         for i in range(2, numerator + 1):
             if numerator % i == 0:
                 numerator //= i
@@ -55,17 +55,17 @@ def time_signature_reduce(numerator, denominator):
     return numerator, denominator
 
 def v2e(x):
-    return x // velocity_quant
+    return x // VELOCITY_QUANT
 
 def e2v(x):
-    return (x * velocity_quant) + (velocity_quant // 2)
+    return (x * VELOCITY_QUANT) + (VELOCITY_QUANT // 2)
 
 def b2e(x):
-    x = max(x, min_tempo)
-    x = min(x, max_tempo)
-    x = x / min_tempo
-    e = round(math.log2(x) * tempo_quant)
+    x = max(x, MIN_TEMPO)
+    x = min(x, MAX_TEMPO)
+    x = x / MIN_TEMPO
+    e = round(math.log2(x) * TEMPO_QUANT)
     return e
 
 def e2b(x):
-    return 2 ** (x / tempo_quant) * min_tempo
+    return 2 ** (x / TEMPO_QUANT) * MIN_TEMPO

@@ -1,13 +1,13 @@
+from ..getmusic.data.indexed_datasets import IndexedDatasetBuilder
+from ..pipeline.presets import prog_to_abrv, inst_to_row, RootKinds
+from ..pipeline.key_chord import TokenHelper, KeyChordDetails
+
 import multiprocessing as mp
-import random
 from tqdm import tqdm
 import numpy as np
 import sys
 import os
 sys.path.append('/'.join(os.path.abspath(__file__).split('/')[:-2]))
-from ..getmusic.data.indexed_datasets import IndexedDatasetBuilder
-from ..pipeline.presets import prog_to_abrv, inst_to_row, RootKinds
-from ..pipeline.key_chord import TokenHelper, KeyChordDetails
 
     
 def oct_to_rep(line):
@@ -40,7 +40,7 @@ def oct_to_rep(line):
     
     chord_list = []
 
-    datum = t_h.t_h.pad_index * np.ones([14, 1 + k_c_d.figure_size],dtype=float)
+    datum = t_h.pad_index * np.ones([14, 1 + k_c_d.figure_size],dtype=float)
 
     idx = 0
     while idx != len(encoding) - 1:

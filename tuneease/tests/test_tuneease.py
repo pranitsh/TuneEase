@@ -26,7 +26,7 @@ def get_converter():
 def test_tuneease_init(get_tuneease):
     tuneease = get_tuneease
     assert isinstance(tuneease, TuneEase)
-    
+
 def test_convert(get_tuneease, get_music_file, get_converter):
     converter = get_converter
     music_file = get_music_file
@@ -47,7 +47,7 @@ def test_number(get_tuneease, get_music_file):
     tuner = get_tuneease
     output_filepath = tuner.number(music_file)
     assert os.path.exists(output_filepath)
-    
+
 def test_random_score(get_tuneease):
     tuneease = get_tuneease
     random_score_file = tuneease.random_score()
@@ -60,4 +60,4 @@ def test_generate(get_tuneease):
         "content-bass": "True",
     }
     output_filepath = tuneease.generate(test_param)
-    assert os.path.exists(output_filepath)    
+    assert os.path.exists(output_filepath)
