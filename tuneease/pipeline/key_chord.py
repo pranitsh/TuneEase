@@ -5,23 +5,52 @@ from ..getmusic.utils.magenta_chord_recognition import Magenta
 from ..pipeline.config import Config
 
 class TokenHelper:
+    """
+    Initialize a TokenHelper instance.
+
+    This constructor method updates the class-level instance variables based on a vocabulary file specified config class.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     tokens_to_ids = {}
     ids_to_tokens = []
     pad_index = None
     empty_index = None
 
     def __init__(self) -> None:
-        if not bool(len(self.tokens_to_ids)):
+        self.updateClass(TokenHelper)
+        
+    @staticmethod
+    def updateClass(cls):
+        """
+        Update class-level instance variables with token information.
+        
+        Args:
+            cls (class): The class instance to be updated.
+
+        Returns:
+            None
+
+        Example:
+            >>> token_helper = TokenHelper()
+            >>> token_helper.tokens_to_ids  # Updated with token mappings
+            {'<token1>': 0, '<token2>': 1, ...}
+        """
+        if not bool(len(cls.tokens_to_ids)):
             config = Config().config
             with open(config['solver']['vocab_path'],'r') as f:
                 tokens = f.readlines()
 
                 for id, token in enumerate(tokens):
                     token, freq = token.strip().split('\t')
-                    self.tokens_to_ids[token] = id
-                self.ids_to_tokens = list(self.tokens_to_ids.keys())
-                self.pad_index = self.tokens_to_ids['<pad>']
-                self.empty_index = len(self.ids_to_tokens)
+                    cls.tokens_to_ids[token] = id
+                cls.ids_to_tokens = list(cls.tokens_to_ids.keys())
+                cls.pad_index = cls.tokens_to_ids['<pad>']
+                cls.empty_index = len(cls.ids_to_tokens)
 
 class KeyChordDetails:
     pos_in_bar = None

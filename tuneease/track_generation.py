@@ -26,10 +26,6 @@ def main(input_args = None):
     config = Config().config
     config = merge_opts_to_config(config, args.opts)
     model = build_model(config, args)
-    dataloader_info = None
-    solver = Solver(gpu=gpu, config=config, args=args, model=model, dataloader=dataloader_info, logger=logger, is_sample=True)
-    assert args.load_path is not None
-    solver.resume(path=args.load_path)
     conditional_track = np.array([False, False, False, False, False, False, True])
     conditional_name = args.conditional_tracks
     condition_inst = []
@@ -52,7 +48,6 @@ def main(input_args = None):
         condition_inst.append('48')
     # if 'c' in conditional_name:
     #     conditional_track[6] = True
-    
     if all(conditional_track):
         print('You can\'t set all tracks as condition. We conduct uncontional generation based on selected content tracks. If you skip content tracks, this song is skipped.')
     content_track = np.array([False, False, False, False, False, False, False])
@@ -73,6 +68,10 @@ def main(input_args = None):
     if not have_cond:
         print('chord error')
         return ""
+    dataloader_info = None
+    solver = Solver(gpu=gpu, config=config, args=args, model=model, dataloader=dataloader_info, logger=logger, is_sample=True)
+    assert args.load_path is not None
+    solver.resume(path=args.load_path)
     oct_line = solver.infer_sample(x, tempo, not_empty_pos, condition_pos, use_ema=args.no_ema)
     data = oct_line.split(' ')
     oct_final_list = []
