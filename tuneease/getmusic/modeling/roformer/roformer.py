@@ -8,8 +8,8 @@ from transformers import RoFormerModel
 from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttentions
 from einops import rearrange
 
-class RoFormerConfig(PretrainedConfig):
 
+class RoFormerConfig(PretrainedConfig):
     model_type = "roformer"
 
     def __init__(
@@ -52,28 +52,33 @@ class RoFormerConfig(PretrainedConfig):
         self.rotary_value = rotary_value
         self.use_cache = use_cache
 
+
 def timestep_embedding(timesteps, dim, max_period=10000):
-        """
-        Create sinusoidal timestep embeddings.
-        :param timesteps: a 1-D Tensor of N indices, one per batch element.
-                        These may be fractional.
-        :param dim: the dimension of the output.
-        :param max_period: controls the minimum frequency of the embeddings.
-        :return: an [N x dim] Tensor of positional embeddings.
-        """
-        half = dim // 2
-        freqs = torch.exp(
-            -math.log(max_period) * torch.arange(start=0, end=half, dtype=torch.float32) / half
-        ).to(device=timesteps.device)
-        args = timesteps[:, None].float() * freqs[None]
-        embedding = torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
-        if dim % 2:
-            embedding = torch.cat([embedding, torch.zeros_like(embedding[:, :1])], dim=-1)
-        return embedding
+    """
+    Create sinusoidal timestep embeddings.
+    :param timesteps: a 1-D Tensor of N indices, one per batch element.
+                    These may be fractional.
+    :param dim: the dimension of the output.
+    :param max_period: controls the minimum frequency of the embeddings.
+    :return: an [N x dim] Tensor of positional embeddings.
+    """
+    half = dim // 2
+    freqs = torch.exp(
+        -math.log(max_period)
+        * torch.arange(start=0, end=half, dtype=torch.float32)
+        / half
+    ).to(device=timesteps.device)
+    args = timesteps[:, None].float() * freqs[None]
+    embedding = torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
+    if dim % 2:
+        embedding = torch.cat([embedding, torch.zeros_like(embedding[:, :1])], dim=-1)
+    return embedding
+
 
 class SiLU(nn.Module):
     def forward(self, x):
         return x * torch.sigmoid(x)
+
 
 class DiffusionRoFormerEmbeddings(nn.Module):
     """Construct the embeddings from word and token_type embeddings."""
@@ -81,15 +86,21 @@ class DiffusionRoFormerEmbeddings(nn.Module):
     def __init__(self, config):
         super().__init__()
 
-        self.word_embeddings = nn.Embedding(config.vocab_size, config.embedding_size, padding_idx=config.pad_token_id)
-        self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.embedding_size)
+        self.word_embeddings = nn.Embedding(
+            config.vocab_size, config.embedding_size, padding_idx=config.pad_token_id
+        )
+        self.token_type_embeddings = nn.Embedding(
+            config.type_vocab_size, config.embedding_size
+        )
         self.time_embeddings = nn.Sequential(
             nn.Linear(128, config.embedding_size),
             SiLU(),
             nn.Linear(config.embedding_size, config.embedding_size),
         )
-        
-        self.LayerNorm = nn.LayerNorm(config.embedding_size * config.tracks, eps=config.layer_norm_eps)
+
+        self.LayerNorm = nn.LayerNorm(
+            config.embedding_size * config.tracks, eps=config.layer_norm_eps
+        )
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, input_ids=None, token_type_ids=None, timesteps=None):
@@ -98,55 +109,68 @@ class DiffusionRoFormerEmbeddings(nn.Module):
         else:
             input_shape = inputs_embeds.size()[:-1]
 
-        inputs_embeds = self.word_embeddings(input_ids) # b, t, l, d
+        inputs_embeds = self.word_embeddings(input_ids)  # b, t, l, d
 
         if token_type_ids is None:
-            token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=inputs_embeds.device)
-        
-        time_embeddings = self.time_embeddings(timestep_embedding(timesteps, 128)).unsqueeze(1).unsqueeze(1) # b, 1, 1, d
-        token_type_embeddings = self.token_type_embeddings(token_type_ids.long()) # b, t, l, d
+            token_type_ids = torch.zeros(
+                input_shape, dtype=torch.long, device=inputs_embeds.device
+            )
+
+        time_embeddings = (
+            self.time_embeddings(timestep_embedding(timesteps, 128))
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )  # b, 1, 1, d
+        token_type_embeddings = self.token_type_embeddings(
+            token_type_ids.long()
+        )  # b, t, l, d
 
         embeddings = inputs_embeds + token_type_embeddings + time_embeddings
-        embeddings = rearrange(embeddings, 'b t l d -> b l (t d)')
+        embeddings = rearrange(embeddings, "b t l d -> b l (t d)")
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
 
         return embeddings
 
-class DiffusionRoFormerModel(RoFormerPreTrainedModel):
 
+class DiffusionRoFormerModel(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
         self.embeddings = DiffusionRoFormerEmbeddings(config)
 
         self.embeddings_project = nn.Sequential(
-                                nn.Linear(config.embedding_size * config.tracks, config.hidden_size),
-                                SiLU(),
-                                nn.Linear(config.hidden_size, config.hidden_size),
-                                )
+            nn.Linear(config.embedding_size * config.tracks, config.hidden_size),
+            SiLU(),
+            nn.Linear(config.hidden_size, config.hidden_size),
+        )
 
         self.outputs_project = nn.Sequential(
-                                nn.Linear(config.hidden_size, config.embedding_size * config.tracks),
-                                SiLU(),
-                                nn.Linear(config.embedding_size * config.tracks, config.embedding_size * config.tracks),
-                                )
+            nn.Linear(config.hidden_size, config.embedding_size * config.tracks),
+            SiLU(),
+            nn.Linear(
+                config.embedding_size * config.tracks,
+                config.embedding_size * config.tracks,
+            ),
+        )
 
         self.encoder = RoFormerModel(config).encoder
-        
+
         self.lm_head = nn.Linear(config.embedding_size, config.vocab_size)
         with torch.no_grad():
             self.lm_head.weight = self.embeddings.word_embeddings.weight
-    
-    def get_extended_attention_mask(self, attention_mask, input_shape, device):
 
+    def get_extended_attention_mask(self, attention_mask, input_shape, device):
         if attention_mask.dim() == 3:
             extended_attention_mask = attention_mask[:, None, :, :]
         elif attention_mask.dim() == 2:
             if self.config.is_decoder:
                 batch_size, seq_length = input_shape
                 seq_ids = torch.arange(seq_length, device=device)
-                causal_mask = seq_ids[None, None, :].repeat(batch_size, seq_length, 1) <= seq_ids[None, :, None]
+                causal_mask = (
+                    seq_ids[None, None, :].repeat(batch_size, seq_length, 1)
+                    <= seq_ids[None, :, None]
+                )
                 causal_mask = causal_mask.to(attention_mask.dtype)
 
                 if causal_mask.shape[1] < attention_mask.shape[1]:
@@ -154,14 +178,18 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
                     causal_mask = torch.cat(
                         [
                             torch.ones(
-                                (batch_size, seq_length, prefix_seq_len), device=device, dtype=causal_mask.dtype
+                                (batch_size, seq_length, prefix_seq_len),
+                                device=device,
+                                dtype=causal_mask.dtype,
                             ),
                             causal_mask,
                         ],
                         axis=-1,
                     )
 
-                extended_attention_mask = causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
+                extended_attention_mask = (
+                    causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
+                )
             else:
                 extended_attention_mask = attention_mask[:, None, None, :]
         else:
@@ -171,7 +199,9 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
                 )
             )
 
-        extended_attention_mask = extended_attention_mask.to(dtype=self.dtype)  # fp16 compatibility
+        extended_attention_mask = extended_attention_mask.to(
+            dtype=self.dtype
+        )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         return extended_attention_mask
@@ -191,12 +221,19 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[BaseModelOutputWithPastAndCrossAttentions, Tuple[torch.Tensor]]:
-
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         use_cache = False
 
@@ -209,14 +246,20 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
         # inputs_embeds = self.word_embeddings(input_ids) # b, t, l, d
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
-        past_key_values_length = past_key_values[0][0].shape[2] if past_key_values is not None else 0
+        past_key_values_length = (
+            past_key_values[0][0].shape[2] if past_key_values is not None else 0
+        )
 
         if attention_mask is None:
-            attention_mask = torch.ones(((batch_size, seq_length + past_key_values_length)), device=device)
+            attention_mask = torch.ones(
+                ((batch_size, seq_length + past_key_values_length)), device=device
+            )
         if token_type_ids is None:
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=device)
 
-        extended_attention_mask: torch.Tensor = self.get_extended_attention_mask(attention_mask, input_shape, device=input_ids.device)
+        extended_attention_mask: torch.Tensor = self.get_extended_attention_mask(
+            attention_mask, input_shape, device=input_ids.device
+        )
 
         encoder_extended_attention_mask = None
 
@@ -241,8 +284,10 @@ class DiffusionRoFormerModel(RoFormerPreTrainedModel):
             return_dict=return_dict,
         )
         sequence_output = encoder_outputs[0]
-        
-        sequence_output = self.outputs_project(sequence_output)
-        sequence_output = rearrange(sequence_output, 'b l (t d) -> b (t l) d', d=self.config.embedding_size)
 
-        return self.lm_head(sequence_output)[:,:,:-2]
+        sequence_output = self.outputs_project(sequence_output)
+        sequence_output = rearrange(
+            sequence_output, "b l (t d) -> b (t l) d", d=self.config.embedding_size
+        )
+
+        return self.lm_head(sequence_output)[:, :, :-2]

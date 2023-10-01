@@ -28,7 +28,7 @@
 #             continue
 
 #         track_numbers = ('<2-0>' in line) + ('<2-25>' in line) + ('<2-32>' in line) + ('<2-48>' in line) + ('<2-128>' in line)
-        
+
 #         if track_numbers == 0:
 #             continue
 
@@ -37,7 +37,7 @@
 #         for item in tmp:
 #             tmp2 = item.strip()[:-1].split('> <')
 #             encoding.append([int(tmp2[0])] + [int(i[2:]) for i in tmp2[1:]])
-        
+
 #         idx = 0
 #         while idx != len(encoding) - 1:
 #             e = encoding[idx]
@@ -63,7 +63,7 @@
 #                         pitch = encoding[f_idx][3]
 #                 else:
 #                     break
-            
+
 #             if len(chord_list) > 1:
 #                 chord_str = ' '.join(chord_list)
 #                 if chord_str in token_dict[str(inst)]:
@@ -108,7 +108,7 @@
 #     for idx,j in enumerate(inst_list_of_tuples):
 #         chord_sum += j[1]
 #         if chord_sum < threshold and j[1] > num_threshold:
-#             if inst_program != '0': 
+#             if inst_program != '0':
 #                 w.write(prog_to_name[inst_program][0] + j[0] + '\t' + str(j[1]) + '\n')
 #             else:
 #                 w.write('P' + j[0] + '\t' + str(j[1]) + '\n')

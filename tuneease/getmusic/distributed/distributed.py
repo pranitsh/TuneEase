@@ -5,8 +5,10 @@ from torch.utils import data
 
 LOCAL_PROCESS_GROUP = None
 
+
 def is_primary():
     return get_rank() == 0
+
 
 def get_rank():
     if not dist.is_available():
@@ -16,6 +18,7 @@ def get_rank():
         return 0
 
     return dist.get_rank()
+
 
 def get_local_rank():
     if not dist.is_available():
@@ -28,6 +31,7 @@ def get_local_rank():
         raise ValueError("tensorfn.distributed.LOCAL_PROCESS_GROUP is None")
 
     return dist.get_rank(group=LOCAL_PROCESS_GROUP)
+
 
 def synchronize():
     if not dist.is_available():
@@ -43,6 +47,7 @@ def synchronize():
 
     dist.barrier()
 
+
 def get_world_size():
     if not dist.is_available():
         return 1
@@ -52,9 +57,11 @@ def get_world_size():
 
     return dist.get_world_size()
 
+
 def is_distributed():
-    raise RuntimeError('Please debug this function!')
+    raise RuntimeError("Please debug this function!")
     return get_world_size() > 1
+
 
 def all_reduce(tensor, op=dist.ReduceOp.SUM, async_op=False):
     world_size = get_world_size()
@@ -64,6 +71,7 @@ def all_reduce(tensor, op=dist.ReduceOp.SUM, async_op=False):
     dist.all_reduce(tensor, op=op, async_op=async_op)
 
     return tensor
+
 
 def all_gather(data):
     world_size = get_world_size()
@@ -99,6 +107,7 @@ def all_gather(data):
 
     return data_list
 
+
 def reduce_dict(input_dict, average=True):
     world_size = get_world_size()
 
@@ -122,6 +131,7 @@ def reduce_dict(input_dict, average=True):
         reduced_dict = {k: v for k, v in zip(keys, values)}
 
     return reduced_dict
+
 
 def data_sampler(dataset, shuffle, distributed):
     if distributed:

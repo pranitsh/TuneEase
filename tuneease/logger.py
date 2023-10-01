@@ -1,5 +1,6 @@
 import logging
 
+
 class ServerLogger:
     """
     A utility class that configures and then can provide a logger instance for server-side logging.
@@ -17,9 +18,10 @@ class ServerLogger:
     Example:
         >>> ServerLogger("tuneease.log").get()
     """
+
     logged_messages = set()
 
-    def __init__(self, name = 'tuneease.log'):
+    def __init__(self, name="tuneease.log"):
         """
         Initialize a ServerLogger with the given name.
 
@@ -29,7 +31,7 @@ class ServerLogger:
         Notes:
             Sets the loggger's log level to DEBUG, configures the log message format, and setups logs to ouput to a file and the console.
         """
-        self.name = name.replace('.log','')
+        self.name = name.replace(".log", "")
         self.logger = logging.getLogger(name)
 
     def get(self):
@@ -43,19 +45,21 @@ class ServerLogger:
             >>> ServerLogger("tuneease.log").get()
         """
         self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                          datefmt='%m/%d/%Y %I:%M:%S %p')  
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%m/%d/%Y %I:%M:%S %p",
+        )
         filehandler = logging.FileHandler(self.name + ".log")
         filehandler.setLevel(logging.DEBUG)
         filehandler.setFormatter(formatter)
-        self.logger.addHandler(filehandler)        
+        self.logger.addHandler(filehandler)
         streamhandler = logging.StreamHandler()
         streamhandler.setLevel(logging.INFO)
         streamhandler.setFormatter(formatter)
         streamhandler.addFilter(self.filter)
         self.logger.addHandler(streamhandler)
         return self.logger
-    
+
     def filter(self, record):
         msg = record.getMessage()
         if msg in self.logged_messages:

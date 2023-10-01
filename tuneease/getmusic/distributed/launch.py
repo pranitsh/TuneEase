@@ -3,6 +3,7 @@ from torch import distributed as dist
 from torch import multiprocessing as mp
 from . import distributed as dist_fn
 
+
 def find_free_port():
     import socket
 
@@ -24,11 +25,11 @@ def launch(fn, n_gpu_per_machine, n_machine=1, machine_rank=0, dist_url=None, ar
                 raise ValueError('dist_url="auto" not supported in multi-machine jobs')
             port = find_free_port()
             dist_url = f"tcp://127.0.0.1:{port}"
-        print('dist_url ', dist_url)
-        print('n_machine ', n_machine)
-        print('args ', args)
-        print('world_size ', world_size)
-        print('machine_rank ', machine_rank)
+        print("dist_url ", dist_url)
+        print("n_machine ", n_machine)
+        print("args ", args)
+        print("world_size ", world_size)
+        print("machine_rank ", machine_rank)
         if n_machine > 1 and dist_url.startswith("file://"):
             raise ValueError(
                 "file:// is not a reliable init method in multi-machine jobs. Prefer tcp://"
@@ -37,7 +38,7 @@ def launch(fn, n_gpu_per_machine, n_machine=1, machine_rank=0, dist_url=None, ar
         mp.spawn(
             distributed_worker,
             nprocs=n_gpu_per_machine,
-            args=(fn, world_size, n_gpu_per_machine, machine_rank, dist_url, args), 
+            args=(fn, world_size, n_gpu_per_machine, machine_rank, dist_url, args),
             daemon=False,
         )
     else:
@@ -52,8 +53,8 @@ def distributed_worker(
         raise OSError("CUDA is not available. Please check your environments")
 
     global_rank = machine_rank * n_gpu_per_machine + local_rank
-    print('local_rank ',local_rank)
-    print('global_rank ',global_rank)
+    print("local_rank ", local_rank)
+    print("global_rank ", global_rank)
     try:
         dist.init_process_group(
             backend="NCCL",
@@ -64,7 +65,7 @@ def distributed_worker(
 
     except Exception:
         raise OSError("failed to initialize NCCL groups")
-    
+
     dist_fn.synchronize()
 
     if n_gpu_per_machine > torch.cuda.device_count():

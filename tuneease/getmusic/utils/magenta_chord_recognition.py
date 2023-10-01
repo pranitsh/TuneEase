@@ -13,13 +13,14 @@
 # limitations under the License.
 
 #!PS Probably modified by the authors of getmusic and now me for making the class.
-#!PS It was previously not usable because of time of import issues. 
+#!PS It was previously not usable because of time of import issues.
 #!PS I attribute everything to the original authors, whoever they are, for the beautiful algorithms.
 
 """Chord inference for NoteSequences."""
 import bisect
 import itertools
 import numpy as np
+
 
 # Names of pitch classes to use (mostly ignoring spelling).
 class Magenta:
@@ -33,29 +34,44 @@ class Magenta:
     _MAX_NUM_CHORDS = None
     UNPITCHED_PROGRAMS = None
     _DEFAULT_TIME_SIGNATURE_CHORDS_PER_BAR = None
+
     def __init__(self) -> None:
-        self._PITCH_CLASS_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+        self._PITCH_CLASS_NAMES = [
+            "C",
+            "C#",
+            "D",
+            "Eb",
+            "E",
+            "F",
+            "F#",
+            "G",
+            "Ab",
+            "A",
+            "Bb",
+            "B",
+        ]
 
         # Pitch classes in a key (rooted at zero).
         self._KEY_PITCHES = [0, 2, 4, 5, 7, 9, 11]
 
         # Pitch classes in each chord kind (rooted at zero).
         self._CHORD_KIND_PITCHES = {
-            '': [0, 4, 7],
-            'm': [0, 3, 7],
-            '+': [0, 4, 8],
-            'dim': [0, 3, 6],
-            '7': [0, 4, 7, 10],
-            'maj7': [0, 4, 7, 11],
-            'm7': [0, 3, 7, 10],
-            'm7b5': [0, 3, 6, 10],
+            "": [0, 4, 7],
+            "m": [0, 3, 7],
+            "+": [0, 4, 8],
+            "dim": [0, 3, 6],
+            "7": [0, 4, 7, 10],
+            "maj7": [0, 4, 7, 11],
+            "m7": [0, 3, 7, 10],
+            "m7b5": [0, 3, 6, 10],
         }
 
         self._CHORD_KINDS = self._CHORD_KIND_PITCHES.keys()
-        self.NO_CHORD = 'N.C.'
+        self.NO_CHORD = "N.C."
         # All usable chords, including no-chord.
         self._CHORDS = [self.NO_CHORD] + list(
-            itertools.product(range(12), self._CHORD_KINDS))
+            itertools.product(range(12), self._CHORD_KINDS)
+        )
 
         # All key-chord pairs.
         self._KEY_CHORDS = list(itertools.product(range(12), self._CHORDS))
@@ -65,7 +81,8 @@ class Magenta:
 
         # MIDI programs that typically sound unpitched.
         self.UNPITCHED_PROGRAMS = (
-            list(range(96, 104)) + list(range(112, 120)) + list(range(120, 128)))
+            list(range(96, 104)) + list(range(112, 120)) + list(range(120, 128))
+        )
 
         # Mapping from time signature to number of chords to infer per bar.
         self._DEFAULT_TIME_SIGNATURE_CHORDS_PER_BAR = {
@@ -75,7 +92,6 @@ class Magenta:
             (4, 4): 2,
             (6, 8): 2,
         }
-
 
     def _key_chord_distribution(self, chord_pitch_out_of_key_prob):
         """Probability distribution over chords for each key."""
@@ -88,21 +104,24 @@ class Magenta:
             key_pitches = set((key + offset) % 12 for offset in self._KEY_PITCHES)
             for i, chord in enumerate(self._CHORDS[1:]):
                 root, kind = chord
-                chord_pitches = set((root + offset) % 12
-                                    for offset in self._CHORD_KIND_PITCHES[kind])
+                chord_pitches = set(
+                    (root + offset) % 12 for offset in self._CHORD_KIND_PITCHES[kind]
+                )
                 num_pitches_in_key[key, i + 1] = len(chord_pitches & key_pitches)
-                num_pitches_out_of_key[key, i +
-                                    1] = len(chord_pitches - key_pitches)
+                num_pitches_out_of_key[key, i + 1] = len(chord_pitches - key_pitches)
 
         # Compute the probability of each chord under each key, normalizing to sum to
         # one for each key.
-        mat = ((1 - chord_pitch_out_of_key_prob) ** num_pitches_in_key *
-            chord_pitch_out_of_key_prob ** num_pitches_out_of_key)
+        mat = (
+            (1 - chord_pitch_out_of_key_prob) ** num_pitches_in_key
+            * chord_pitch_out_of_key_prob**num_pitches_out_of_key
+        )
         mat /= mat.sum(axis=1)[:, np.newaxis]
         return mat
 
-
-    def _key_chord_transition_distribution(self, key_chord_distribution, key_change_prob, chord_change_prob):
+    def _key_chord_transition_distribution(
+        self, key_chord_distribution, key_change_prob, chord_change_prob
+    ):
         """Transition distribution between key-chord pairs."""
         mat = np.zeros([len(self._KEY_CHORDS), len(self._KEY_CHORDS)])
 
@@ -117,7 +136,7 @@ class Magenta:
                 if key_1 != key_2:
                     # Key change. Chord probability depends only on key and not previous
                     # chord.
-                    mat[i, j] = (key_change_prob / 11)
+                    mat[i, j] = key_change_prob / 11
                     mat[i, j] *= key_chord_distribution[key_2, chord_index_2]
 
                 else:
@@ -127,11 +146,11 @@ class Magenta:
                         # Chord probability depends on key, but we have to redistribute the
                         # probability mass on the previous chord since we know the chord
                         # changed.
-                        mat[i, j] *= (
-                            chord_change_prob * (
-                                key_chord_distribution[key_2, chord_index_2] +
-                                key_chord_distribution[key_2, chord_index_1] / (len(self._CHORDS) -
-                                                                                1)))
+                        mat[i, j] *= chord_change_prob * (
+                            key_chord_distribution[key_2, chord_index_2]
+                            + key_chord_distribution[key_2, chord_index_1]
+                            / (len(self._CHORDS) - 1)
+                        )
                     else:
                         # No chord change.
                         mat[i, j] *= 1 - chord_change_prob
@@ -177,12 +196,13 @@ class Magenta:
                 x[start_frame, pitch_class] += note.end - note.start
             else:
                 x[start_frame, pitch_class] += (
-                    frame_boundaries[start_frame] - note.start)
+                    frame_boundaries[start_frame] - note.start
+                )
                 for frame in range(start_frame + 1, end_frame):
                     x[frame, pitch_class] += (
-                        frame_boundaries[frame] - frame_boundaries[frame - 1])
-                x[end_frame, pitch_class] += (
-                    note.end - frame_boundaries[end_frame - 1])
+                        frame_boundaries[frame] - frame_boundaries[frame - 1]
+                    )
+                x[end_frame, pitch_class] += note.end - frame_boundaries[end_frame - 1]
 
         x_norm = np.linalg.norm(x, axis=1)
         nonzero_frames = x_norm > 0
@@ -190,16 +210,15 @@ class Magenta:
 
         return x
 
-
     def _chord_frame_log_likelihood(self, note_pitch_vectors, chord_note_concentration):
         """Log-likelihood of observing each frame of note pitches under each chord."""
-        return chord_note_concentration * np.dot(note_pitch_vectors,
-                                                self._chord_pitch_vectors().T)
+        return chord_note_concentration * np.dot(
+            note_pitch_vectors, self._chord_pitch_vectors().T
+        )
 
-
-    def _key_chord_viterbi(self, chord_frame_loglik,
-                        key_chord_loglik,
-                        key_chord_transition_loglik):
+    def _key_chord_viterbi(
+        self, chord_frame_loglik, key_chord_loglik, key_chord_transition_loglik
+    ):
         """Use the Viterbi algorithm to infer a sequence of key-chord pairs."""
         num_frames, num_chords = chord_frame_loglik.shape
         num_key_chords = len(key_chord_transition_loglik)
@@ -212,39 +231,47 @@ class Magenta:
             key, unused_chord = key_chord
             chord_index = i % len(self._CHORDS)
             loglik_matrix[0, i] = (
-                -np.log(12) + key_chord_loglik[key, chord_index] +
-                chord_frame_loglik[0, chord_index])
+                -np.log(12)
+                + key_chord_loglik[key, chord_index]
+                + chord_frame_loglik[0, chord_index]
+            )
 
         for frame in range(1, num_frames):
             # At each frame, store the log-likelihood of the best sequence ending in
             # each key-chord pair, along with the index of the parent key-chord pair
             # from the previous frame.
-            mat = (np.tile(loglik_matrix[frame - 1][:, np.newaxis],
-                        [1, num_key_chords]) +
-                key_chord_transition_loglik)
+            mat = (
+                np.tile(loglik_matrix[frame - 1][:, np.newaxis], [1, num_key_chords])
+                + key_chord_transition_loglik
+            )
             path_matrix[frame, :] = mat.argmax(axis=0)
-            loglik_matrix[frame, :] = (
-                mat[path_matrix[frame, :], range(num_key_chords)] +
-                np.tile(chord_frame_loglik[frame], 12))
+            loglik_matrix[frame, :] = mat[
+                path_matrix[frame, :], range(num_key_chords)
+            ] + np.tile(chord_frame_loglik[frame], 12)
 
         # Reconstruct the most likely sequence of key-chord pairs.
         path = [np.argmax(loglik_matrix[-1])]
         for frame in range(num_frames, 1, -1):
             path.append(path_matrix[frame - 1, path[-1]])
 
-        return [(index // num_chords, self._CHORDS[index % num_chords])
-                for index in path[::-1]]
+        return [
+            (index // num_chords, self._CHORDS[index % num_chords])
+            for index in path[::-1]
+        ]
 
-    def infer_chords_for_sequence(self, sequence,
-                                pos_per_chord,
-                                max_chords,
-                                key_chord_loglik=None,
-                                key_chord_transition_loglik=None,
-                                key_change_prob=0.001,
-                                chord_change_prob=0.5,
-                                chord_pitch_out_of_key_prob=0.01,
-                                chord_note_concentration=100.0,
-                                add_key_signatures=False):
+    def infer_chords_for_sequence(
+        self,
+        sequence,
+        pos_per_chord,
+        max_chords,
+        key_chord_loglik=None,
+        key_chord_transition_loglik=None,
+        key_change_prob=0.001,
+        chord_change_prob=0.5,
+        chord_pitch_out_of_key_prob=0.01,
+        chord_note_concentration=100.0,
+        add_key_signatures=False,
+    ):
         """Infer chords for a NoteSequence using the Viterbi algorithm.
         This uses some heuristics to infer chords for a quantized NoteSequence. At
         each chord position a key and chord will be inferred, and the chords will be
@@ -282,36 +309,39 @@ class Magenta:
         """
         beats = [pos_per_chord * i for i in range(max_chords)]
         if len(beats) == 0:
-            raise Exception('max chords should > 0')
+            raise Exception("max chords should > 0")
         num_chords = len(beats)
         if num_chords > self._MAX_NUM_CHORDS:
             raise Exception(
-                'NoteSequence too long for chord inference: %d frames' % num_chords)
+                "NoteSequence too long for chord inference: %d frames" % num_chords
+            )
 
         # Compute pitch vectors for each chord frame, then compute log-likelihood of
         # observing those pitch vectors under each possible chord.
-        note_pitch_vectors = self.sequence_note_pitch_vectors(
-            sequence,
-            beats)
+        note_pitch_vectors = self.sequence_note_pitch_vectors(sequence, beats)
         chord_frame_loglik = self._chord_frame_log_likelihood(
-            note_pitch_vectors, chord_note_concentration)
+            note_pitch_vectors, chord_note_concentration
+        )
 
         # Compute distribution over chords for each key, and transition distribution
         # between key-chord pairs.
         if key_chord_loglik is None:
             key_chord_distribution = self._key_chord_distribution(
-                chord_pitch_out_of_key_prob=chord_pitch_out_of_key_prob)
+                chord_pitch_out_of_key_prob=chord_pitch_out_of_key_prob
+            )
             key_chord_loglik = np.log(key_chord_distribution)
 
         if key_chord_transition_loglik is None:
             key_chord_transition_distribution = self._key_chord_transition_distribution(
                 key_chord_distribution,
                 key_change_prob=key_change_prob,
-                chord_change_prob=chord_change_prob)
+                chord_change_prob=chord_change_prob,
+            )
             key_chord_transition_loglik = np.log(key_chord_transition_distribution)
 
         key_chords = self._key_chord_viterbi(
-            chord_frame_loglik, key_chord_loglik, key_chord_transition_loglik)
+            chord_frame_loglik, key_chord_loglik, key_chord_transition_loglik
+        )
 
         # if add_key_signatures:
         #     del sequence.key_signatures[:]
@@ -341,7 +371,7 @@ class Magenta:
                 figure = self.NO_CHORD
             else:
                 root, kind = chord
-                figure = '%s:%s' % (self._PITCH_CLASS_NAMES[root], kind)
+                figure = "%s:%s" % (self._PITCH_CLASS_NAMES[root], kind)
             chords.append(figure)
         return chords
         # if figure != current_chord_name:
@@ -351,7 +381,9 @@ class Magenta:
         #     ta.text = figure
         # current_chord_name = figure
 
+
 #!PS Not exactly sure what the bottom portion is doing except ruining my pylint score apparently?
+
 
 class ChordInferenceError(Exception):  # pylint:disable=g-bad-exception-name
     pass

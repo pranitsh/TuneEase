@@ -3,6 +3,7 @@ import subprocess
 from .logger import ServerLogger
 from .pathutility import PathUtility
 
+
 class Converter:
     """
     A class for converting music files to MusicXML format using MuseScore.
@@ -23,13 +24,15 @@ class Converter:
         ValueError: If museScore_path is not provided during initialization.
     """
 
-    def __init__(self, log_file="tuneease.log", museScore_path = None):
+    def __init__(self, log_file="tuneease.log", museScore_path=None):
         self.logger = ServerLogger(log_file).get()
         self.util = PathUtility()
         self.project_directory = self.util.project_directory()
         if museScore_path == None:
-            raise ValueError("The value of the museScorePath cannot be null in this case. " 
-                             "Provide input arguments to the path of museScore when running server.py")
+            raise ValueError(
+                "The value of the museScorePath cannot be null in this case. "
+                "Provide input arguments to the path of museScore when running server.py"
+            )
         self.museScore_path = museScore_path
 
     def save_file(self, file, destination_folder="temp"):
@@ -51,13 +54,17 @@ class Converter:
             filepath = converter.save_file(uploaded_file, destination_folder="uploads")
         """
         try:
-            assert file.filename != '', "File is empty"
-            filepath = os.path.join(self.project_directory, destination_folder, file.filename)
+            assert file.filename != "", "File is empty"
+            filepath = os.path.join(
+                self.project_directory, destination_folder, file.filename
+            )
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             file.save(filepath)
             return filepath
         except Exception as e:
-            self.logger.error(f"Failed to save the file. Error message: {str(e)}", "error")
+            self.logger.error(
+                f"Failed to save the file. Error message: {str(e)}", "error"
+            )
             raise
 
     def convert_to(self, filepath, output_extension: str = ".xml"):
@@ -80,13 +87,21 @@ class Converter:
         """
         output_filepath = os.path.splitext(filepath)[0] + output_extension
         try:
-            subprocess.run([self.museScore_path, filepath, '-o', output_filepath], check=True, cwd=self.project_directory)
+            subprocess.run(
+                [self.museScore_path, filepath, "-o", output_filepath],
+                check=True,
+                cwd=self.project_directory,
+            )
             return output_filepath
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Failed to run MuseScore command. Error message: {str(e)}")
+            self.logger.error(
+                f"Failed to run MuseScore command. Error message: {str(e)}"
+            )
         except Exception as e:
-            self.logger.error(f"Failed to convert score to MusicXML. Error message: {str(e)}")
-    
+            self.logger.error(
+                f"Failed to convert score to MusicXML. Error message: {str(e)}"
+            )
+
     def convert(self, file, output_extension: str = ".xml"):
         """
         Save and convert an uploaded music file from the server to the MusicXML format.

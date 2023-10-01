@@ -1,11 +1,12 @@
 import os
 from click import FileError
-import music21 
+import music21
 import random
 from .logger import ServerLogger
 from .pathutility import PathUtility
 from .converter import Converter
 from .track_generation import main as music_generator
+
 
 class TuneEase:
     """
@@ -29,10 +30,12 @@ class TuneEase:
         >>> tuneease = TuneEase()
         >>> output_path = tuneease.convert(input_path)
     """
+
     util = PathUtility()
     museScore_path = util.musescore_path()
     logger = ServerLogger("tuneease.log").get()
-    def __init__(self, museScore_path = ""):
+
+    def __init__(self, museScore_path=""):
         if museScore_path:
             self.museScore_path = museScore_path
         self.converter = Converter(museScore_path=self.museScore_path)
@@ -58,7 +61,7 @@ class TuneEase:
         except Exception as e:
             return e
 
-    def split(self, filepath, start, end = ""):
+    def split(self, filepath, start, end=""):
         """
         Get specific measures from a music file and save the result as MusicXML.
 
@@ -74,23 +77,34 @@ class TuneEase:
             >>> tuneease = TuneEase()
             >>> split_filepath = tuneease.split('inputfile.xml', 2, 5)
         """
-        self.logger.info("Running split" + filepath + " with " + str(start) + "-" + str(end))
-        filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
-        measure_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-measure-' + str(start) + "-" + str(end) + ".xml")
+        self.logger.info(
+            "Running split" + filepath + " with " + str(start) + "-" + str(end)
+        )
+        filepath = os.path.join(self.util.project_directory(), "temp", filepath)
+        measure_filepath = os.path.join(
+            self.util.project_directory(),
+            "temp",
+            os.path.splitext(filepath)[0]
+            + "-measure-"
+            + str(start)
+            + "-"
+            + str(end)
+            + ".xml",
+        )
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         try:
             parsed_song = music21.converter.parse(filepath)
             measures = []
             for part in parsed_song.parts:
-                measures.extend(part.getElementsByClass('Measure'))
+                measures.extend(part.getElementsByClass("Measure"))
             if end == "":
                 stream = measures[start]
-            else: 
-                measures_to_combine = measures[start-1:end]
+            else:
+                measures_to_combine = measures[start - 1 : end]
                 stream = music21.stream.Stream()
                 for measure in measures_to_combine:
                     stream.append(measure)
-            stream.write('musicxml', measure_filepath)
+            stream.write("musicxml", measure_filepath)
         finally:
             return measure_filepath
 
@@ -109,20 +123,28 @@ class TuneEase:
             >>> output_file = tuneease.number("input.xml")
         """
         self.logger.info("Running number on {}".format(filepath))
-        filepath = os.path.join(self.util.project_directory(), 'temp', filepath)
-        output_filepath = os.path.join(self.util.project_directory(), 'temp', os.path.splitext(filepath)[0] + '-number.xml')
+        filepath = os.path.join(self.util.project_directory(), "temp", filepath)
+        output_filepath = os.path.join(
+            self.util.project_directory(),
+            "temp",
+            os.path.splitext(filepath)[0] + "-number.xml",
+        )
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         score = music21.converter.parse(filepath)
         for part in score.parts:
-            for i, measure in enumerate(part.getElementsByClass(music21.stream.Measure)):
-                text_expression = music21.expressions.TextExpression("Measure {}".format(i + 1))
-                text_expression.style.absoluteY = 20  
-                text_expression.style.justify = 'left'
+            for i, measure in enumerate(
+                part.getElementsByClass(music21.stream.Measure)
+            ):
+                text_expression = music21.expressions.TextExpression(
+                    "Measure {}".format(i + 1)
+                )
+                text_expression.style.absoluteY = 20
+                text_expression.style.justify = "left"
                 measure.insert(0, text_expression)
-        score.write('musicxml', output_filepath)
+        score.write("musicxml", output_filepath)
         return output_filepath
 
-    def random_score(self, time_signature = '4/4', number_measures = '8'):
+    def random_score(self, time_signature="4/4", number_measures="8"):
         """
         Generate a random music score.
 
@@ -141,31 +163,35 @@ class TuneEase:
             - This method generates a random music score with random notes along with random correct or incorrect signs above each image.
         """
         self.logger.info("Running random score")
-        quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-        number_measures = int(number_measures) * int(time_signature.split('/')[0])
+        quarter_length = 1.0 / (int(time_signature.split("/")[1]) / 4)
+        number_measures = int(number_measures) * int(time_signature.split("/")[0])
         s = music21.stream.Stream()
         ts = music21.meter.TimeSignature(time_signature)
         s.append(ts)
         md = music21.metadata.Metadata()
-        md.title = 'Random'
-        md.composer = 'MuseTune'
+        md.title = "Random"
+        md.composer = "MuseTune"
         s.insert(0, md)
-        notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
-        lyrics = ['✔', 'x']
+        notes = ["A4", "B4", "C4", "D4", "E4", "F4", "G4"]
+        lyrics = ["✔", "x"]
         for i in range(number_measures):
             note_name = random.choice(notes)
             n = music21.note.Note(note_name, quarterLength=quarter_length)
             n.lyric = random.choice(lyrics)
             s.append(n)
         idx = 0
-        while os.path.exists(os.path.join(self.util.project_directory(), 'temp', f"random{idx}.xml")):
+        while os.path.exists(
+            os.path.join(self.util.project_directory(), "temp", f"random{idx}.xml")
+        ):
             idx += 1
-        filepath = os.path.join(self.util.project_directory(), 'temp', f"random{idx}.xml")
+        filepath = os.path.join(
+            self.util.project_directory(), "temp", f"random{idx}.xml"
+        )
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        s.write('musicxml', filepath)
+        s.write("musicxml", filepath)
         return filepath
 
-    def generate(self, input_dict = dict(), file = None, gpu=False):
+    def generate(self, input_dict=dict(), file=None, gpu=False):
         """
         Generate music based on user input or a template file.
 
@@ -207,80 +233,106 @@ class TuneEase:
             seed = input_dict.get("seed", 0)
         """
         self.logger.info("Received a generate request with {}".format(str(input_dict)))
-        conditional_tracks = "".join([
-            str(int(input_dict.get("condition-lead", False))),
-            str(int(input_dict.get("condition-bass", False))),
-            str(int(input_dict.get("condition-drums", False))),
-            str(int(input_dict.get("condition-guitar", False))),
-            str(int(input_dict.get("condition-piano", False))),
-            str(int(input_dict.get("condition-strings", False))),
-            str(int(True))
-        ])
-        content_tracks = "".join([
-            str(int(input_dict.get("content-lead", False))),
-            str(int(input_dict.get("content-bass", False))),
-            str(int(input_dict.get("content-drums", False))),
-            str(int(input_dict.get("content-guitar", False))),
-            str(int(input_dict.get("content-piano", True))),
-            str(int(input_dict.get("content-strings", True))),
-            str(int(False))
-        ])
+        conditional_tracks = "".join(
+            [
+                str(int(input_dict.get("condition-lead", False))),
+                str(int(input_dict.get("condition-bass", False))),
+                str(int(input_dict.get("condition-drums", False))),
+                str(int(input_dict.get("condition-guitar", False))),
+                str(int(input_dict.get("condition-piano", False))),
+                str(int(input_dict.get("condition-strings", False))),
+                str(int(True)),
+            ]
+        )
+        content_tracks = "".join(
+            [
+                str(int(input_dict.get("content-lead", False))),
+                str(int(input_dict.get("content-bass", False))),
+                str(int(input_dict.get("content-drums", False))),
+                str(int(input_dict.get("content-guitar", False))),
+                str(int(input_dict.get("content-piano", True))),
+                str(int(input_dict.get("content-strings", True))),
+                str(int(False)),
+            ]
+        )
         seed = input_dict.get("seed", 0)
         if file:
             assert os.path.exists(file)
             filepath = file
         else:
-            self.logger.info("Performing with template file with " +str(input_dict.get('number_measures', '5') + " measures"))
-            time_signature = input_dict.get('time_signature', '4/4')
-            quarter_length = 1.0 / (int(time_signature.split('/')[1]) / 4)
-            number_measures = int(input_dict.get('number_measures', '5')) * int(time_signature.split('/')[0])
+            self.logger.info(
+                "Performing with template file with "
+                + str(input_dict.get("number_measures", "5") + " measures")
+            )
+            time_signature = input_dict.get("time_signature", "4/4")
+            quarter_length = 1.0 / (int(time_signature.split("/")[1]) / 4)
+            number_measures = int(input_dict.get("number_measures", "5")) * int(
+                time_signature.split("/")[0]
+            )
             stream = music21.stream.Stream()
             time_signature = music21.meter.TimeSignature(time_signature)
             stream.append(time_signature)
             metadata = music21.metadata.Metadata()
-            metadata.title = 'Random'
-            metadata.composer = 'MuseTune'
+            metadata.title = "Random"
+            metadata.composer = "MuseTune"
             stream.insert(0, metadata)
-            notes = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4']
+            notes = ["A4", "B4", "C4", "D4", "E4", "F4", "G4"]
             for _ in range(number_measures):
                 note_name = random.choice(notes)
                 n = music21.note.Note(note_name, quarterLength=quarter_length)
                 stream.append(n)
-            filepath = os.path.join(self.util.project_directory(), 'temp', "template.xml")
+            filepath = os.path.join(
+                self.util.project_directory(), "temp", "template.xml"
+            )
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            stream.write('musicxml', filepath)
+            stream.write("musicxml", filepath)
 
         if os.path.splitext(filepath)[1] == ".xml":
             output_filepath = os.path.splitext(filepath)[0] + ".mid"
             musicxml_file = music21.converter.parse(filepath)
             try:
-                musicxml_file.write('midi', fp=output_filepath)
+                musicxml_file.write("midi", fp=output_filepath)
             except Exception as e:
-                self.logger.error("Had an error converting to midi with {} - {}".format(filepath, str(e)))
+                self.logger.error(
+                    "Had an error converting to midi with {} - {}".format(
+                        filepath, str(e)
+                    )
+                )
                 raise e
         elif os.path.splitext(filepath)[1] == ".mid":
             output_filepath = filepath
         else:
             raise FileError("Only .mid or .xml accepted atm")
         cmd = [
-            '--file_path', output_filepath,
-            "--seed", str(seed),
-            "--conditional_tracks", conditional_tracks,
-            "--content_tracks", content_tracks,
-            "--use_gpu", int(gpu),
+            "--file_path",
+            output_filepath,
+            "--seed",
+            str(seed),
+            "--conditional_tracks",
+            conditional_tracks,
+            "--content_tracks",
+            content_tracks,
+            "--use_gpu",
+            int(gpu),
         ]
         save_path = os.path.splitext(music_generator(cmd))[0]
         musicxml_file = music21.converter.parse(save_path + ".mid")
         try:
-            musicxml_file.write('musicxml', fp=save_path + ".xml")
+            musicxml_file.write("musicxml", fp=save_path + ".xml")
         except Exception as e:
-            self.logger.error("Had an error converting the generated content to xml (probably some error with input file) - {}".format(str(e)))
+            self.logger.error(
+                "Had an error converting the generated content to xml (probably some error with input file) - {}".format(
+                    str(e)
+                )
+            )
             raise e
         return save_path + ".xml"
 
+
 def tuneease():
     tuneease = TuneEase()
-    print(tuneease.generate())    
-    
-if __name__=="__main__":
+    print(tuneease.generate())
+
+
+if __name__ == "__main__":
     tuneease()
