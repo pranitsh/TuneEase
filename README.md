@@ -6,6 +6,8 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 
 - You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb RAM is recommended.
 - 4 gb of disk space (option 1), 16 gb or more of disk space (option 2), 6-7 gb of disk space (option 3).
+  - You may not need MuseScore if you are inputting files natively compatible with Music21. But, you will need the checkpoint for generating music with AI.
+- You will need Python 3.9 or above.
 
 ## Installing
 
@@ -18,20 +20,21 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 2. Activate the virtual environment:
    - On macOS/Linux: `source venv/bin/activate`
    - On Windows: `venv\Scripts\activate`
-3. Quick and simple:
+3. This installation process assumes you have git installed on your system.
    ```sh
    pip install git+https://github.com/Pshah2023/TuneEase.git@main
    ```
 
 ### Option 2: Using Docker
-1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: https://www.docker.com/get-started
-2. Clone this repository to your local machine and navigate to the project directory in a terminal.
-3. Build the Docker image using the following command:
+1. Make sure you have Docker installed on your system. If not, you can download and install it from the official Docker website: [https://www.docker.com/get-started](https://www.docker.com/get-started)
+2. Install the [model checkpoint](https://1drv.ms/u/s!ArHNvccy1VzPkWGKXZDQY5k-kDi4?e=fFxcEq). **You must place it at <project_directory>/checkpoint.pth**
+3. Clone this repository to your local machine and navigate to the project directory in a terminal.
+4. Build the Docker image using the following command:
    ```sh
    docker compose up -d
    ```
    This will map port 8080 from the container to port 8080 on your host machine.
-4. Access the server by opening a web browser and visiting http://localhost:8080
+5. Access the server by opening a web browser and visiting http://localhost:8080
 
 ### Option 3: Codebase Sharing
 
@@ -76,6 +79,9 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
    3. Prevented duplicated runs of the same code with new classes
    4. Improved the Pylint score from 1.25 to 5.12
 3. Changed hierarchy and propagated changes.
+   4. Improved the Pylint score from 1.25 to 3.90
+   5. Improved the logger by not creating a folder and instead creating a log file for use with the PyPI packaging.
+   6. Changed hierarchy and propagated changes.
 4. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to the more automatic install process offered here.
 
 # Usage
