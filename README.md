@@ -7,7 +7,7 @@ Welcome to Tune Ease! This project provides intuitive website control and automa
 - You will need more than 8 gb of RAM for the checkpoint.pth the original researchers provided. 16 gb RAM is recommended.
 - 4 gb of disk space (option 1), 16 gb or more of disk space (option 2), 6-7 gb of disk space (option 3).
   - You may not need MuseScore if you are inputting files natively compatible with Music21. But, you will need the checkpoint for generating music with AI.
-- You will need Python 3.8 or above.
+- You will need Python 3.9 or above.
 
 ## Installing
 
