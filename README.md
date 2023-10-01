@@ -78,11 +78,9 @@ Feel free to choose the setup option that best suits your needs. Enjoy the proje
    2. Created a folder named pipeline that contains code that was previously duplicated many times.
    3. Prevented duplicated runs of the same code with new classes
    4. Improved the Pylint score from 1.25 to 5.12
-3. Changed hierarchy and propagated changes.
-   4. Improved the Pylint score from 1.25 to 3.90
    5. Improved the logger by not creating a folder and instead creating a log file for use with the PyPI packaging.
    6. Changed hierarchy and propagated changes.
-4. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to the more automatic install process offered here.
+3. Packaged this into a code shareable repo. This mean the install time has been reduced from the initial 4-5 hours it took me in the beginning to the more automatic install process offered here.
 
 # Usage
 
