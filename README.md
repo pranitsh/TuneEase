@@ -96,8 +96,8 @@ python -m tuneease.tuneease --checkpoint_path <required path>
 
 If you want to use the server, the website is mainly for using the AI.
 ```bash
-tuneease --museScore_path <optional path> --checkpoint_path <optional path>
-python -m tuneease.server --museScore_path <optional path> --checkpoint_path <optional path>
+tuneease --musescore_path <optional path> --checkpoint_path <optional path>
+python -m tuneease.server --musescore_path <optional path> --checkpoint_path <optional path>
 ```
 Normally, you can access the server at http://localhost:8080, or you can follow whatever port flask tells you to go to.
 
